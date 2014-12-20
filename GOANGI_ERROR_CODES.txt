@@ -1,0 +1,3 @@
+Used error codes
+Used with panic("Internal server error [code CODE_HERE]")
+600001
