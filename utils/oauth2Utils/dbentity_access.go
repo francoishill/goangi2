@@ -12,8 +12,6 @@ const (
 	OAUTH2_ACCESS_ACCESS_DATA_COLUMN_NAME    = "AccessData"
 	OAUTH2_ACCESS_ACCESS_TOKEN_COLUMN_NAME   = "AccessToken"
 	OAUTH2_ACCESS_REFRESH_TOKEN_COLUMN_NAME  = "RefreshToken"
-
-	OAUTH2_ACCESS_USER_COLUMN_NAME = "User"
 )
 
 var (
@@ -44,32 +42,19 @@ type OAuth2Access struct {
 	User IExpectedUser `orm:"-"` //For now lets not allow NULL users as if we want to create our own 'bot' accessing the data, we can also create a user for it. And perhaps have a boolean flag for user entities called 'bot'?
 }
 
-func (this *OAuth2Access) loadRelatedUser(ormContext *OrmContext) {
-	OrmRepo.BaseLoadRelatedFields(ormContext, this, OAUTH2_ACCESS_USER_COLUMN_NAME)
-}
-
 func (this *OAuth2Access) ReadUsingID(ormContext *OrmContext, id int64, loadRelatedSettings *RelatedFieldsToLoad) {
 	this.Id = id
 	OrmRepo.BaseReadEntityUsingPK(ormContext, this, loadRelatedSettings)
-	this.loadRelatedUser(ormContext)
 }
 
 func (this *OAuth2Access) ReadUsingAccessToken(ormContext *OrmContext, accessToken string, loadRelatedSettings *RelatedFieldsToLoad) bool {
 	this.AccessToken = accessToken
-	existed := OrmRepo.BaseReadEntityUsingFields(ormContext, this, loadRelatedSettings, OAUTH2_ACCESS_ACCESS_TOKEN_COLUMN_NAME)
-	if existed {
-		this.loadRelatedUser(ormContext)
-	}
-	return existed
+	return OrmRepo.BaseReadEntityUsingFields(ormContext, this, loadRelatedSettings, OAUTH2_ACCESS_ACCESS_TOKEN_COLUMN_NAME)
 }
 
 func (this *OAuth2Access) ReadUsingRefreshToken(ormContext *OrmContext, refreshToken string, loadRelatedSettings *RelatedFieldsToLoad) bool {
 	this.RefreshToken = refreshToken
-	existed := OrmRepo.BaseReadEntityUsingFields(ormContext, this, loadRelatedSettings, OAUTH2_ACCESS_REFRESH_TOKEN_COLUMN_NAME)
-	if existed {
-		this.loadRelatedUser(ormContext)
-	}
-	return existed
+	return OrmRepo.BaseReadEntityUsingFields(ormContext, this, loadRelatedSettings, OAUTH2_ACCESS_REFRESH_TOKEN_COLUMN_NAME)
 }
 
 func (this *OAuth2Access) Insert(ormContext *OrmContext) {

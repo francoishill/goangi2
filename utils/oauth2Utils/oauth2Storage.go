@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RangelReale/osin"
-
-	// . "github.com/francoishill/goangi2/models/dbentities/oauth2"
 )
 
 type OAuth2Storage struct {
@@ -111,6 +109,24 @@ func (s *OAuth2Storage) SaveAccess(data *osin.AccessData) (returnErr error) {
 	return
 }
 
+type tmpUserStruct struct {
+	Id int64
+}
+
+func (this *tmpUserStruct) IAmAUser() {
+}
+func (this *tmpUserStruct) GetRands() string {
+	//We have not implemented this yet, perhaps we should never trigger this workflow? Otherwise this must be implemented
+	panic("Internal server error 600002")
+}
+func (this *tmpUserStruct) GetPassword() string {
+	//We have not implemented this yet, perhaps we should never trigger this workflow? Otherwise this must be implemented
+	panic("Internal server error 600003")
+}
+func (this *tmpUserStruct) GetId() int64 {
+	return this.Id
+}
+
 func (s *OAuth2Storage) LoadAccess(accessToken string) (data *osin.AccessData, returnErr error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -128,6 +144,7 @@ func (s *OAuth2Storage) LoadAccess(accessToken string) (data *osin.AccessData, r
 	}
 
 	data = ConvertIntoOsinAccess(access)
+	data.UserData = IExpectedUser(&tmpUserStruct{Id: access.UserId})
 	returnErr = nil
 	return
 }

@@ -17,7 +17,8 @@ type BaseAuthorizedController struct {
 }
 
 func (this *BaseAuthorizedController) Prepare() {
-	defer this.RecoverPanicAndServerError()
+	defer this.RecoverPanicAndServerError_InControllerPrepare()
+
 	this.BaseController.Prepare()
 
 	this.OsinResponse = OsinServerObject.NewResponse()

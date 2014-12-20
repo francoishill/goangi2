@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/astaxie/beego"
 
 	. "github.com/francoishill/goangi2/context"
 	. "github.com/francoishill/goangi2/utils/entityUtils"
 	. "github.com/francoishill/goangi2/utils/errorUtils"
+	. "github.com/francoishill/goangi2/utils/oauth2Utils"
 )
 
 type BaseController struct {
@@ -15,7 +17,8 @@ type BaseController struct {
 }
 
 func (this *BaseController) Prepare() {
-	defer this.RecoverPanicAndServerError()
+	defer this.RecoverPanicAndServerError_InControllerPrepare()
+
 	this.Controller.Prepare()
 
 	if DefaultBaseAppContext == nil {
@@ -26,8 +29,9 @@ func (this *BaseController) Prepare() {
 }
 
 func (this *BaseController) ServerJson_ErrorText(errorMessage string) {
-	jsonData := map[string]string{
-		"Error": errorMessage,
+	jsonData := map[string]interface{}{
+		"Success": false,
+		"Error":   errorMessage,
 	}
 	this.Data["json"] = jsonData
 	this.ServeJson()
@@ -55,6 +59,25 @@ func (this *BaseController) RecoverPanicAndServerError() {
 	if r := recover(); r != nil {
 		this.Ctx.Output.SetStatus(500)
 		this.onAjaxRouterPanicRecovery(r)
+	}
+}
+
+func (this *BaseController) RecoverPanicAndServerError_InControllerPrepare() {
+	if r := recover(); r != nil {
+		this.Ctx.Output.SetStatus(500)
+		//Serve the error as-is, otherwise the osin errors will
+		switch e := r.(type) {
+		case *OsinAuthorizeError:
+			this.Data["json"] = e
+			this.ServeJson()
+		case string:
+			this.ServerJson_ErrorText(e)
+		case error:
+			this.ServerJson_ErrorText(e.Error())
+		default:
+			this.ServerJson_ErrorText(fmt.Sprintf("%+v", r))
+		}
+		this.StopRun()
 	}
 }
 
