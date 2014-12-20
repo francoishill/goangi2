@@ -44,6 +44,17 @@ func (this *BaseController) ServerJson_ErrorText(errorMessage string) {
 	this.ServeJson()
 }
 
+func (this *BaseController) ServerJson_SuccessText(successMessage string) {
+	jsonData := map[string]interface{}{
+		"Success": true,
+	}
+	if successMessage != "" {
+		jsonData["Message"] = successMessage
+	}
+	this.Data["json"] = jsonData
+	this.ServeJson()
+}
+
 func (this *BaseController) ServeJsonResponseObject(responseObject IRouterResponseObject) {
 	this.Data["json"] = responseObject
 	this.ServeJson()
