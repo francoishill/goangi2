@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego"
 
 	. "github.com/francoishill/goangi2/context"
+	. "github.com/francoishill/goangi2/responses"
 	. "github.com/francoishill/goangi2/utils/entityUtils"
 	. "github.com/francoishill/goangi2/utils/errorUtils"
 	. "github.com/francoishill/goangi2/utils/oauth2Utils"
@@ -28,12 +29,23 @@ func (this *BaseController) Prepare() {
 	this.BaseAppContext = DefaultBaseAppContext
 }
 
+func (this *BaseController) PanicIfError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (this *BaseController) ServerJson_ErrorText(errorMessage string) {
 	jsonData := map[string]interface{}{
 		"Success": false,
 		"Error":   errorMessage,
 	}
 	this.Data["json"] = jsonData
+	this.ServeJson()
+}
+
+func (this *BaseController) ServeJsonResponseObject(responseObject IRouterResponseObject) {
+	this.Data["json"] = responseObject
 	this.ServeJson()
 }
 
@@ -81,6 +93,6 @@ func (this *BaseController) RecoverPanicAndServerError_InControllerPrepare() {
 	}
 }
 
-func (this *BaseController) CreateDefaultOrmContext() *OrmContext {
-	return CreateOrmContext(this.Logger, nil, nil)
+func (this *BaseController) CreateDefaultRouterOrmContext(beginTransaction bool) *OrmContext {
+	return CreateOrmContext(this.Logger, nil, nil, beginTransaction)
 }

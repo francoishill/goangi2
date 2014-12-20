@@ -2,6 +2,8 @@ package validationUtils
 
 import (
 	"regexp"
+
+	. "github.com/francoishill/goangi2/utils/errorUtils"
 )
 
 //Thanks to github.com/astaxie/beego/validation
@@ -13,6 +15,6 @@ func IsValidEmail(emailStr string) bool {
 
 func CheckValidEmail(emailStr, errorIfInvalidEmail string) {
 	if !IsValidEmail(emailStr) {
-		panic(errorIfInvalidEmail)
+		PanicValidationError(errorIfInvalidEmail)
 	}
 }

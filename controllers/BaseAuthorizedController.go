@@ -50,6 +50,6 @@ func (this *BaseAuthorizedController) RecoverPanicAndServerError() {
 	}
 }
 
-func (this *BaseAuthorizedController) CreateDefaultOrmContext() *OrmContext {
-	return CreateOrmContext(this.Logger, nil, this.AuthorizedContext.User)
+func (this *BaseAuthorizedController) CreateDefaultRouterOrmContext(beginTransaction bool) *OrmContext {
+	return CreateOrmContext(this.Logger, nil, this.AuthorizedContext.User, beginTransaction)
 }
