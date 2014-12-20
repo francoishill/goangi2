@@ -2,6 +2,7 @@ package validationUtils
 
 import (
 	"regexp"
+	"strings"
 
 	. "github.com/francoishill/goangi2/utils/errorUtils"
 )
@@ -14,6 +15,9 @@ func IsValidEmail(emailStr string) bool {
 }
 
 func CheckValidEmail(emailStr, errorIfInvalidEmail string) {
+	if strings.Trim(emailStr, " ") == "" {
+		PanicValidationError(errorIfInvalidEmail)
+	}
 	if !IsValidEmail(emailStr) {
 		PanicValidationError(errorIfInvalidEmail)
 	}
