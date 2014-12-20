@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego"
 
 	. "github.com/francoishill/goangi2/context"
+	. "github.com/francoishill/goangi2/utils/entityUtils"
 	. "github.com/francoishill/goangi2/utils/errorUtils"
 )
 
@@ -55,4 +56,8 @@ func (this *BaseController) RecoverPanicAndServerError() {
 		this.Ctx.Output.SetStatus(500)
 		this.onAjaxRouterPanicRecovery(r)
 	}
+}
+
+func (this *BaseController) CreateDefaultOrmContext() *OrmContext {
+	return CreateOrmContext(this.Logger, nil, nil)
 }

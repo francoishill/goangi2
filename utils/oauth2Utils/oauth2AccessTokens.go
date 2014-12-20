@@ -143,6 +143,7 @@ func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, authUserPro
 			if !ar.Authorized {
 				OverwriteOsinResponseErrorWithOwn_SpecifyErrorKey(resp, E_EMAIL_DOES_NOT_EXIST_OR_PASSWORD_INCORRECT)
 			}
+			setExpirationForAccessRequest(ar)
 
 			/*case osin.CLIENT_CREDENTIALS:
 			ar.Authorized = true*/

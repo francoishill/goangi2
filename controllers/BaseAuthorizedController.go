@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	. "github.com/francoishill/goangi2/utils/cookieUtils"
+	. "github.com/francoishill/goangi2/utils/entityUtils"
 	. "github.com/francoishill/goangi2/utils/oauth2Utils"
 )
 
@@ -46,4 +47,8 @@ func (this *BaseAuthorizedController) RecoverPanicAndServerError() {
 			panic(r) //So it can be caught by the Base Controller
 		}
 	}
+}
+
+func (this *BaseAuthorizedController) CreateDefaultOrmContext() *OrmContext {
+	return CreateOrmContext(this.Logger, nil, this.AuthorizedContext.User)
 }
