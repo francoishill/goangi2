@@ -130,6 +130,8 @@ func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, authUserPro
 	r := ctx.Request
 	w := ctx.ResponseWriter
 
+	var userId int64
+
 	ar := OsinServerObject.HandleAccessRequest(resp, r)
 	if ar != nil {
 		switch ar.Type {
@@ -139,9 +141,13 @@ func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, authUserPro
 			ar.Authorized = true
 			setExpirationForAccessRequest(ar)
 		case osin.PASSWORD:
-			ar.Authorized, ar.UserData = authUserProvider.DoVerifyUser(ar.Username, ar.Password)
+			var tmpUser IExpectedUser
+			ar.Authorized, tmpUser = authUserProvider.DoVerifyUser(ar.Username, ar.Password)
 			if !ar.Authorized {
 				OverwriteOsinResponseErrorWithOwn_SpecifyErrorKey(resp, E_EMAIL_DOES_NOT_EXIST_OR_PASSWORD_INCORRECT)
+			} else {
+				ar.UserData = tmpUser
+				userId = tmpUser.GetId()
 			}
 			setExpirationForAccessRequest(ar)
 
@@ -158,6 +164,9 @@ func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, authUserPro
 
 		resp.ErrorStatusCode = 401
 		resp.StatusCode = 401
+	} else {
+		resp.Output["user_id"] = userId
+		resp.Output["success"] = true
 	}
 
 	if setCookies && !resp.IsError {
