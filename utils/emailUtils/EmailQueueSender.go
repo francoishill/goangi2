@@ -71,15 +71,13 @@ func sendEmail(emailContext *EmailContext, queuedEmail *QueuedEmail) {
 func sendAllMailsInQueue(emailContext *EmailContext) {
 	defer onEmailQueueSendError(emailContext)
 
-	emailContext.Logger.Debug("Starting to send all mails")
-
 	caughtErrors := []string{}
 
-	unsentQueuedEmails := (&QueuedEmail{}).List_Unsent(nil, nil)
+	unsentQueuedEmails := (&QueuedEmail{}).List_UnsentAndDue(nil, nil)
+
+	emailContext.Logger.Debug("Starting to send %d mails", len(unsentQueuedEmails))
+
 	for _, queuedEmail := range unsentQueuedEmails {
-		if queuedEmail.SendDueTime.After(time.Now()) {
-			continue
-		}
 		func() {
 			defer func() {
 				if r := recover(); r != nil {

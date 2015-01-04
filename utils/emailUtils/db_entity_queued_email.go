@@ -10,6 +10,7 @@ import (
 
 const (
 	MAIL_QUEUE__TABLE_NAME                   = "queued_email"
+	MAIL_QUEUE__COLUMN__SEND_DUE_TIME        = "SendDueTime"
 	MAIL_QUEUE__COLUMN__SUCCESSFULLY_SENT_ON = "SuccessfullySentOn"
 	MAIL_QUEUE__COLUMN__SEND_ERROR           = "SendError"
 )
@@ -77,10 +78,13 @@ func (this *QueuedEmail) Update_SetSendError(ormContext *OrmContext, errorString
 	OrmRepo.BaseDeleteEntity(ormContext, this)
 }*/
 
-func (this *QueuedEmail) List_Unsent(ormContext *OrmContext, loadRelatedSettings *RelatedFieldsToLoad, orderByFields ...string) []*QueuedEmail {
+func (this *QueuedEmail) List_UnsentAndDue(ormContext *OrmContext, loadRelatedSettings *RelatedFieldsToLoad, orderByFields ...string) []*QueuedEmail {
 	fieldFilters := []map[string]interface{}{
 		map[string]interface{}{
 			MAIL_QUEUE__COLUMN__SUCCESSFULLY_SENT_ON + "__isnull": true,
+		},
+		map[string]interface{}{
+			MAIL_QUEUE__COLUMN__SEND_DUE_TIME + "__lte": time.Now(),
 		},
 	}
 
