@@ -10,6 +10,7 @@ import (
 	. "github.com/francoishill/goangi2/context"
 	. "github.com/francoishill/goangi2/utils/configUtils"
 	. "github.com/francoishill/goangi2/utils/cookieUtils"
+	. "github.com/francoishill/goangi2/utils/loggingUtils"
 )
 
 func checkError(err error) {
@@ -43,7 +44,7 @@ func SetupDefaultSecurityContext(configProvider IConfigContainer) {
 	DefaultCookieSecurityContext = CreateCookieSecurityContext(configProvider.MustString("security::cookie_security_key"))
 }
 
-func SetupServerConfigs_AndAppContext(configProvider IConfigContainer) *BaseAppContext {
+func SetupServerConfigs_AndAppContext(configProvider IConfigContainer, logger ILogger) *BaseAppContext {
 	baseAppUrl := configProvider.MustString("server::base_app_url")
 	hostAndPort := configProvider.MustString("server::host_and_port")
 	host, portStr, err := net.SplitHostPort(hostAndPort)
@@ -61,6 +62,6 @@ func SetupServerConfigs_AndAppContext(configProvider IConfigContainer) *BaseAppC
 
 	//Context settings
 	maxProfilePicWidth := uint(configProvider.DefaultInt("other::max_profile_pic_width", 128))
-	DefaultBaseAppContext = CreateBaseAppContext(beego.BeeLogger, baseAppUrl, maxProfilePicWidth, uploadDir, profilePicsDir)
+	DefaultBaseAppContext = CreateBaseAppContext(logger, baseAppUrl, maxProfilePicWidth, uploadDir, profilePicsDir)
 	return DefaultBaseAppContext
 }
