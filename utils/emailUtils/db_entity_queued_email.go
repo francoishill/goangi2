@@ -93,9 +93,13 @@ func (this *QueuedEmail) GetSplittedRecipientEmailAddresses() []string {
 	return strings.Split(this.RecipientEmailsCsv, ",")
 }
 
-func (u *QueuedEmail) TableEngine() string     { return "INNODB" }
-func (u *QueuedEmail) TableName() string       { return MAIL_QUEUE__TABLE_NAME }
-func (u *QueuedEmail) TableIndex() [][]string  { return [][]string{} }
+func (u *QueuedEmail) TableEngine() string { return "INNODB" }
+func (u *QueuedEmail) TableName() string   { return MAIL_QUEUE__TABLE_NAME }
+func (u *QueuedEmail) TableIndex() [][]string {
+	return [][]string{
+		[]string{MAIL_QUEUE__COLUMN__SUCCESSFULLY_SENT_ON},
+	}
+}
 func (u *QueuedEmail) TableUnique() [][]string { return [][]string{} }
 
 func init() {
