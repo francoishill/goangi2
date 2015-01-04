@@ -1,4 +1,4 @@
-package config
+package configUtils
 
 import (
 	"github.com/astaxie/beego"

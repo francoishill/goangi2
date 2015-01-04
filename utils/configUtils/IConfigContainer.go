@@ -1,4 +1,4 @@
-package config
+package configUtils
 
 //Just a duplicate currently of beego.config.ConfigContainer
 type IConfigContainer interface {
