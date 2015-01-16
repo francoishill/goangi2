@@ -31,7 +31,8 @@ func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncFo
 	if ormSyncNow {
 		force := ormSyncForce
 		verbose := true
-		orm.RunSyncdb("default", force, verbose)
+		err := orm.RunSyncdb("default", force, verbose)
+		checkError(err)
 	}
 
 	if ormSyncIfFlagPresent {
