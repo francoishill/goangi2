@@ -68,8 +68,8 @@ func PBKDF2(password, salt []byte, iter, keyLen int, h func() hash.Hash) []byte 
 	return dk[:keyLen]
 }
 
-func EncryptPasswordForDB(password string) string {
-	salt := GetUserSalt()
+func EncryptPasswordForDB(password string, passwordSaltLength int) string {
+	salt := GetUserPasswordSalt(passwordSaltLength)
 	pwd := EncodePassword(password, salt)
 	// save salt and encode password, use $ as split char
 	return fmt.Sprintf("%s$%s", salt, pwd)
@@ -82,17 +82,16 @@ func EncodePassword(rawPwd string, salt string) string {
 }
 
 // return a user salt token
-func GetUserSalt() string {
-	return GetRandomString(10)
+func GetUserPasswordSalt(passwordSaltLength int) string {
+	return GetRandomString(passwordSaltLength)
 }
 
-func VerifyPassword(rawPwd, encodedPwd string) bool {
-
+func VerifyPassword(rawPwd, encodedPwd string, passwordSaltLength int) bool {
 	// split
 	var salt, encoded string
-	if len(encodedPwd) > 11 {
-		salt = encodedPwd[:10]
-		encoded = encodedPwd[11:]
+	if len(encodedPwd) > (passwordSaltLength + 1) {
+		salt = encodedPwd[:passwordSaltLength]
+		encoded = encodedPwd[(passwordSaltLength + 1):]
 	}
 
 	return EncodePassword(rawPwd, salt) == encoded
