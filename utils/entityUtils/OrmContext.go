@@ -6,12 +6,11 @@ import (
 )
 
 type OrmContext struct {
-	Logger       ILogger
-	OrmWrapper   *OrmWrapper
-	LoggedInUser interface{}
+	Logger     ILogger
+	OrmWrapper *OrmWrapper
 }
 
-func CreateOrmContext(logger ILogger, possibleParentTransactionalOrmWrapper *OrmWrapper, loggedInUser interface{}, beginTransaction bool) *OrmContext {
+func CreateOrmContext(logger ILogger, possibleParentTransactionalOrmWrapper *OrmWrapper, beginTransaction bool) *OrmContext {
 	loggerToUse := logger
 	if loggerToUse == nil {
 		loggerToUse = CreateNewFmtLogger()
@@ -20,9 +19,8 @@ func CreateOrmContext(logger ILogger, possibleParentTransactionalOrmWrapper *Orm
 		possibleParentTransactionalOrmWrapper = CreateNewOrmWrapper(nil)
 	}
 	ormCtx := &OrmContext{
-		Logger:       loggerToUse,
-		OrmWrapper:   possibleParentTransactionalOrmWrapper,
-		LoggedInUser: loggedInUser,
+		Logger:     loggerToUse,
+		OrmWrapper: possibleParentTransactionalOrmWrapper,
 	}
 	if beginTransaction {
 		ormCtx.OrmWrapper.BeginTransaction()
@@ -32,9 +30,8 @@ func CreateOrmContext(logger ILogger, possibleParentTransactionalOrmWrapper *Orm
 
 func CreateDefaultOrmContext() *OrmContext {
 	var ormWrapper *OrmWrapper = nil
-	var user interface{} = nil
 	beginTransaction := false
-	return CreateOrmContext(CreateNewFmtLogger(), ormWrapper, user, beginTransaction)
+	return CreateOrmContext(CreateNewFmtLogger(), ormWrapper, beginTransaction)
 }
 
 func (this *OrmContext) getCurrentStackTrace() string {
