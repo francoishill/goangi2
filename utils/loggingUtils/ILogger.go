@@ -1,4 +1,4 @@
-package logger
+package loggingUtils
 
 type ILogger interface {
 	Emergency(format string, v ...interface{})
