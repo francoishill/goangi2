@@ -18,7 +18,7 @@ type BaseController struct {
 }
 
 func (this *BaseController) Prepare() {
-	defer this.RecoverPanicAndServerError_InControllerPrepare()
+	defer this.RecoverPanicAndServeError_InControllerPrepare()
 
 	this.Controller.Prepare()
 
@@ -35,7 +35,7 @@ func (this *BaseController) PanicIfError(err error) {
 	}
 }
 
-func (this *BaseController) ServerJson_ErrorText(errorMessage string) {
+func (this *BaseController) ServeJson_ErrorText(errorMessage string) {
 	jsonData := map[string]interface{}{
 		"Success": false,
 		"Error":   errorMessage,
@@ -44,7 +44,7 @@ func (this *BaseController) ServerJson_ErrorText(errorMessage string) {
 	this.ServeJson()
 }
 
-func (this *BaseController) ServerJson_SuccessText(successMessage string) {
+func (this *BaseController) ServeJson_SuccessText(successMessage string) {
 	jsonData := map[string]interface{}{
 		"Success": true,
 	}
@@ -75,17 +75,17 @@ func (this *BaseController) onAjaxRouterPanicRecovery(recoveryObj interface{}) {
 		userAgent,
 		recoveryObj,
 	)
-	this.ServerJson_ErrorText(userMessage)
+	this.ServeJson_ErrorText(userMessage)
 }
 
-func (this *BaseController) RecoverPanicAndServerError() {
+func (this *BaseController) RecoverPanicAndServeError() {
 	if r := recover(); r != nil {
 		this.Ctx.Output.SetStatus(500)
 		this.onAjaxRouterPanicRecovery(r)
 	}
 }
 
-func (this *BaseController) RecoverPanicAndServerError_InControllerPrepare() {
+func (this *BaseController) RecoverPanicAndServeError_InControllerPrepare() {
 	if r := recover(); r != nil {
 		this.Ctx.Output.SetStatus(500)
 		//Serve the error as-is, otherwise the osin errors will
@@ -94,16 +94,16 @@ func (this *BaseController) RecoverPanicAndServerError_InControllerPrepare() {
 			this.Data["json"] = e
 			this.ServeJson()
 		case string:
-			this.ServerJson_ErrorText(e)
+			this.ServeJson_ErrorText(e)
 		case error:
-			this.ServerJson_ErrorText(e.Error())
+			this.ServeJson_ErrorText(e.Error())
 		default:
-			this.ServerJson_ErrorText(fmt.Sprintf("%+v", r))
+			this.ServeJson_ErrorText(fmt.Sprintf("%+v", r))
 		}
 		this.StopRun()
 	}
 }
 
 func (this *BaseController) CreateDefaultRouterOrmContext(beginTransaction bool) *OrmContext {
-	return CreateOrmContext(this.Logger, nil, nil, beginTransaction)
+	return CreateOrmContext(this.Logger, nil, beginTransaction)
 }

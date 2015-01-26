@@ -17,7 +17,7 @@ type BaseAuthorizedController struct {
 }
 
 func (this *BaseAuthorizedController) Prepare() {
-	defer this.RecoverPanicAndServerError_InControllerPrepare()
+	defer this.RecoverPanicAndServeError_InControllerPrepare()
 
 	this.BaseController.Prepare()
 
@@ -31,8 +31,8 @@ func (this *BaseAuthorizedController) Prepare() {
 	//TODO: Not handling cookies at this point
 }
 
-func (this *BaseAuthorizedController) RecoverPanicAndServerError() {
-	defer this.BaseController.RecoverPanicAndServerError() //To catch the non-osin errors
+func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
+	defer this.BaseController.RecoverPanicAndServeError() //To catch the non-osin errors
 
 	if r := recover(); r != nil {
 		switch e := r.(type) {
@@ -51,5 +51,5 @@ func (this *BaseAuthorizedController) RecoverPanicAndServerError() {
 }
 
 func (this *BaseAuthorizedController) CreateDefaultRouterOrmContext(beginTransaction bool) *OrmContext {
-	return CreateOrmContext(this.Logger, nil, this.AuthorizedContext.User, beginTransaction)
+	return CreateOrmContext(this.Logger, nil, beginTransaction)
 }
