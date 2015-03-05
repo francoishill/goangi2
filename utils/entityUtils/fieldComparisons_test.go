@@ -13,13 +13,9 @@ type tmpPersonStructForSetFormValues struct {
 }
 
 func doTestPassingNonStructPointer_ForTestSetFormValues(t *testing.T, obj1, obj2 interface{}, extraMessage string) {
-	defer func() {
-		recover()
-	}()
-
-	SetFormValues(obj1, obj2, nil, nil)
-
-	AssertAndFailNow(t, false, "The previous line should not have succeeded. We should require both to be POINTERS, but we are not passing in a pointer. "+extraMessage)
+	Convey("doTestPassingNonStructPointer_ForTestSetFormValues", t, func() {
+		So(func() { SetFormValues(obj1, obj2, nil, nil) }, ShouldPanic)
+	})
 }
 func TestSetFormValues(t *testing.T) {
 	tmpStruct1 := tmpPersonStructForSetFormValues{}
@@ -30,9 +26,7 @@ func TestSetFormValues(t *testing.T) {
 
 	var destinationPersonToUpdate *tmpPersonStructForSetFormValues
 
-	Convey("Having a source and destination person", t, func() {
-		These tests will not pass, have to continue changing all `AssertEqualsStringAnd....` related code to goconvey code
-
+	Convey("Having a source and destination person (case 1)", t, func() {
 		sourcePersonToCopyFrom := &tmpPersonStructForSetFormValues{
 			Name:     "NewName",
 			Age:      26,
@@ -43,11 +37,21 @@ func TestSetFormValues(t *testing.T) {
 			Age:      25,
 			Employed: true,
 		}
-		AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "OrigName", "Unexpected Name (case 1) for destinationPersonToUpdate.")
-		AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 25, "Unexpected Age (case 1) for destinationPersonToUpdate.")
-		SetFormValues(sourcePersonToCopyFrom, destinationPersonToUpdate, nil, nil) //Transfer from sourcePersonToCopyFrom to destinationPersonToUpdate
-		AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "NewName", "Name (case 1) did not change with SetFormValues.")
-		AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 26, "Age (case 1) did not change with SetFormValues.")
+		Convey("Unexpected Name (case 1) for destinationPersonToUpdate.", func() {
+			So(destinationPersonToUpdate.Name, ShouldEqual, "OrigName")
+		})
+		Convey("Unexpected Age (case 1) for destinationPersonToUpdate.", func() {
+			So(destinationPersonToUpdate.Age, ShouldEqual, 25)
+		})
+		Convey("Will now SetFormValues", func() {
+			SetFormValues(sourcePersonToCopyFrom, destinationPersonToUpdate, nil, nil) //Transfer from sourcePersonToCopyFrom to destinationPersonToUpdate
+			Convey("Name (case 1) did not change with SetFormValues.", func() {
+				So(destinationPersonToUpdate.Name, ShouldEqual, "NewName")
+			})
+			Convey("Age (case 1) did not change with SetFormValues.", func() {
+				So(destinationPersonToUpdate.Age, ShouldEqual, 26)
+			})
+		})
 	})
 
 	//Reset destinationPersonToUpdate for this case
@@ -63,11 +67,23 @@ func TestSetFormValues(t *testing.T) {
 		Age:      25,
 		Employed: true,
 	}
-	AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "OrigName", "Unexpected Name (case 2) for destinationPersonToUpdate.")
-	AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 25, "Unexpected Age (case 2) for destinationPersonToUpdate.")
-	SetFormValues(sourceAnonToCopyFrom, destinationPersonToUpdate, nil, nil)
-	AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "NewNameAnon", "Name (case 2) did not change with SetFormValues.")
-	AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 27, "Age (case 2) did not change with SetFormValues.")
+	Convey("Having a source and destination person (case 2)", t, func() {
+		Convey("Unexpected Name (case 2) for destinationPersonToUpdate.", func() {
+			So(destinationPersonToUpdate.Name, ShouldEqual, "OrigName")
+		})
+		Convey("Unexpected Age (case 2) for destinationPersonToUpdate.", func() {
+			So(destinationPersonToUpdate.Age, ShouldEqual, 25)
+		})
+		Convey("Will now SetFormValues", func() {
+			SetFormValues(sourceAnonToCopyFrom, destinationPersonToUpdate, nil, nil)
+			Convey("Name (case 2) did not change with SetFormValues.", func() {
+				So(destinationPersonToUpdate.Name, ShouldEqual, "NewNameAnon")
+			})
+			Convey("Age (case 2) did not change with SetFormValues.", func() {
+				So(destinationPersonToUpdate.Age, ShouldEqual, 27)
+			})
+		})
+	})
 
 	//Reset destinationPersonToUpdate for this case
 	sourceAnonToCopyFrom2 := &struct {
@@ -82,16 +98,33 @@ func TestSetFormValues(t *testing.T) {
 		Age:      25,
 		Employed: true,
 	}
-	AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "OrigName", "Unexpected Name (case 3) for destinationPersonToUpdate.")
-	AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 25, "Unexpected Age (case 3) for destinationPersonToUpdate.")
+	Convey("Having a source and destination person (case 3)", t, func() {
+		Convey("Unexpected Name (case 3) for destinationPersonToUpdate.", func() {
+			So(destinationPersonToUpdate.Name, ShouldEqual, "OrigName")
+		})
+		Convey("Unexpected Age (case 3) for destinationPersonToUpdate.", func() {
+			So(destinationPersonToUpdate.Age, ShouldEqual, 25)
+		})
+		Convey("Will now SetFormValues and skip Name and Age", func() {
+			SetFormValues(sourceAnonToCopyFrom2, destinationPersonToUpdate, []string{"Name", "Age"}, nil)
+			Convey("Name (case 3) was NOT supposed to update with SetFormValues as we ignored Name+Age.", func() {
+				So(destinationPersonToUpdate.Name, ShouldEqual, "OrigName")
+			})
+			Convey("Age (case 3) was NOT supposed to update with SetFormValues as we ignored Name+Age.", func() {
+				So(destinationPersonToUpdate.Age, ShouldEqual, 25)
+			})
 
-	SetFormValues(sourceAnonToCopyFrom2, destinationPersonToUpdate, []string{"Name", "Age"}, nil) //Skip both Name+Age
-	AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "OrigName", "Name (case 3) was NOT supposed to update with SetFormValues as we ignored Name+Age.")
-	AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 25, "Age (case 3) was NOT supposed to update with SetFormValues as we ignored Name+Age.")
-
-	SetFormValues(sourceAnonToCopyFrom2, destinationPersonToUpdate, []string{"Name"}, nil) //Skip only Name
-	AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "OrigName", "Name (case 4) was NOT supposed to update with SetFormValues as we ignored Name.")
-	AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 27, "Age (case 4) did not change with SetFormValues.")
+			Convey("Will now SetFormValues and skip Name only", func() {
+				SetFormValues(sourceAnonToCopyFrom2, destinationPersonToUpdate, []string{"Name"}, nil)
+				Convey("Name (case 4) was NOT supposed to update with SetFormValues as we ignored Name.", func() {
+					So(destinationPersonToUpdate.Name, ShouldEqual, "OrigName")
+				})
+				Convey("Age (case 4) did not change with SetFormValues.", func() {
+					So(destinationPersonToUpdate.Age, ShouldEqual, 27)
+				})
+			})
+		})
+	})
 
 	//Just reset the values of Name+Age
 	destinationPersonToUpdate = &tmpPersonStructForSetFormValues{
@@ -99,9 +132,13 @@ func TestSetFormValues(t *testing.T) {
 		Age:      25,
 		Employed: true,
 	}
-	SetFormValues(sourceAnonToCopyFrom2, destinationPersonToUpdate, []string{"Age"}, nil) //Skip only Age
-	AssertEqualStringAndFailNow(t, destinationPersonToUpdate.Name, "NewNameAnon", "Name (case 4) did not change with SetFormValues.")
-	AssertEqualIntAndFailNow(t, destinationPersonToUpdate.Age, 25, "Age (case 4) was NOT supposed to update with SetFormValues as we ignored Age.")
+	Convey("Having a source and destination person (case 4)", t, func() {
+		Convey("Will now SetFormValues and skip Age", func() {
+			SetFormValues(sourceAnonToCopyFrom2, destinationPersonToUpdate, []string{"Age"}, nil)
+			So(destinationPersonToUpdate.Name, ShouldEqual, "NewNameAnon")
+			So(destinationPersonToUpdate.Age, ShouldEqual, 25)
+		})
+	})
 }
 
 type tmpPersonStructForFormChanges struct {
@@ -135,8 +172,12 @@ func TestFormChanges(t *testing.T) {
 		Created:        now,
 		Updated:        now,
 	}
-	changedFields1 := FormChanges(originalPerson, modifiedPerson1, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields1), 0, "Unexpected number of changed fields for identical entity.")
+	Convey("Getting FormChanges (case 1)", t, func() {
+		changedFields1 := FormChanges(originalPerson, modifiedPerson1, nil, nil)
+		Convey("Unexpected number of changed fields for identical entity.", func() {
+			So(len(changedFields1), ShouldEqual, 0)
+		})
+	})
 
 	//Only modify Name
 	modifiedPerson2 := &tmpPersonStructForFormChanges{
@@ -147,12 +188,23 @@ func TestFormChanges(t *testing.T) {
 		Created:        now,
 		Updated:        now,
 	}
-	changedFields2 := FormChanges(originalPerson, modifiedPerson2, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields2), 1, "Unexpected number of changed fields for only modifying only the Name field.")
-	changedField2_0 := changedFields2[0]
-	AssertEqualStringAndFailNow(t, changedField2_0.FieldName, "Name", "Unexpected changed FieldName.")
-	AssertEqualStringAndFailNow(t, changedField2_0.OldValue, "Name", "Unexpected changed OldValue.")
-	AssertEqualStringAndFailNow(t, changedField2_0.NewValue, "NewName", "Unexpected changed NewValue.")
+	Convey("Getting FormChanges (case 2)", t, func() {
+		changedFields2 := FormChanges(originalPerson, modifiedPerson2, nil, nil)
+		Convey("Unexpected number of changed fields for only modifying only the Name field.", func() {
+			So(len(changedFields2), ShouldEqual, 1)
+		})
+
+		changedField2_0 := changedFields2[0]
+		Convey("Unexpected changed FieldName.", func() {
+			So(changedField2_0.FieldName, ShouldEqual, "Name")
+		})
+		Convey("Unexpected changed OldValue.", func() {
+			So(changedField2_0.OldValue, ShouldEqual, "Name")
+		})
+		Convey("Unexpected changed NewValue.", func() {
+			So(changedField2_0.NewValue, ShouldEqual, "NewName")
+		})
+	})
 
 	//Only modify Age
 	modifiedPerson3 := &tmpPersonStructForFormChanges{
@@ -163,12 +215,22 @@ func TestFormChanges(t *testing.T) {
 		Created:        now,
 		Updated:        now,
 	}
-	changedFields3 := FormChanges(originalPerson, modifiedPerson3, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields3), 1, "Unexpected number of changed fields for only modifying only the Age field.")
-	changedField3_0 := changedFields3[0]
-	AssertEqualStringAndFailNow(t, changedField3_0.FieldName, "Age", "Unexpected changed FieldName.")
-	AssertEqualStringAndFailNow(t, changedField3_0.OldValue, "24", "Unexpected changed OldValue.")
-	AssertEqualStringAndFailNow(t, changedField3_0.NewValue, "25", "Unexpected changed NewValue.")
+	Convey("Getting FormChanges (case 3)", t, func() {
+		changedFields3 := FormChanges(originalPerson, modifiedPerson3, nil, nil)
+		Convey("Unexpected number of changed fields for only modifying only the Age field.", func() {
+			So(len(changedFields3), ShouldEqual, 1)
+		})
+		changedField3_0 := changedFields3[0]
+		Convey("Unexpected changed FieldName.", func() {
+			So(changedField3_0.FieldName, ShouldEqual, "Age")
+		})
+		Convey("Unexpected changed OldValue.", func() {
+			So(changedField3_0.OldValue, ShouldEqual, "24")
+		})
+		Convey("Unexpected changed NewValue.", func() {
+			So(changedField3_0.NewValue, ShouldEqual, "25")
+		})
+	})
 
 	//Only modify Employed
 	modifiedPerson4 := &tmpPersonStructForFormChanges{
@@ -179,12 +241,22 @@ func TestFormChanges(t *testing.T) {
 		Created:        now,
 		Updated:        now,
 	}
-	changedFields4 := FormChanges(originalPerson, modifiedPerson4, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields4), 1, "Unexpected number of changed fields for only modifying only the Employed field.")
-	changedField4_0 := changedFields4[0]
-	AssertEqualStringAndFailNow(t, changedField4_0.FieldName, "Employed", "Unexpected changed FieldName.")
-	AssertEqualStringAndFailNow(t, changedField4_0.OldValue, "true", "Unexpected changed OldValue.")
-	AssertEqualStringAndFailNow(t, changedField4_0.NewValue, "false", "Unexpected changed NewValue.")
+	Convey("Getting FormChanges (case 4)", t, func() {
+		changedFields4 := FormChanges(originalPerson, modifiedPerson4, nil, nil)
+		Convey("Unexpected number of changed fields for only modifying only the Employed field.", func() {
+			So(len(changedFields4), ShouldEqual, 1)
+		})
+		changedField4_0 := changedFields4[0]
+		Convey("Unexpected changed FieldName.", func() {
+			So(changedField4_0.FieldName, ShouldEqual, "Employed")
+		})
+		Convey("Unexpected changed OldValue.", func() {
+			So(changedField4_0.OldValue, ShouldEqual, "true")
+		})
+		Convey("Unexpected changed NewValue.", func() {
+			So(changedField4_0.NewValue, ShouldEqual, "false")
+		})
+	})
 
 	//Modify all fields
 	modifiedPerson5 := &tmpPersonStructForFormChanges{
@@ -195,10 +267,16 @@ func TestFormChanges(t *testing.T) {
 		Created:        now,
 		Updated:        now,
 	}
-	changedFields5a := FormChanges(originalPerson, modifiedPerson5, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields5a), 3, "Unexpected number of changed fields for modifying Name, Age and Employed (Surname ignored) fields.")
-	changedFields5b := FormChanges(originalPerson, modifiedPerson5, []string{"Name", "Age"}, nil) //Skipping the changes of Name+Age changes
-	AssertEqualIntAndFailNow(t, len(changedFields5b), 1, "Unexpected number of changed fields for modifying Name, Age and Employed (Surname ignored and skipping Name+Age) fields.")
+	Convey("Getting FormChanges (case 5)", t, func() {
+		changedFields5a := FormChanges(originalPerson, modifiedPerson5, nil, nil)
+		Convey("Unexpected number of changed fields for modifying Name, Age and Employed (Surname ignored) fields.", func() {
+			So(len(changedFields5a), ShouldEqual, 3)
+		})
+		changedFields5b := FormChanges(originalPerson, modifiedPerson5, []string{"Name", "Age"}, nil) //Skipping the changes of Name+Age changes
+		Convey("Unexpected number of changed fields for modifying Name, Age and Employed (Surname ignored and skipping Name+Age) fields.", func() {
+			So(len(changedFields5b), ShouldEqual, 1)
+		})
+	})
 
 	//Modify nothing but only the Created and Updated, but these two fields should be ignored.
 	modifiedPerson6 := &tmpPersonStructForFormChanges{
@@ -209,8 +287,12 @@ func TestFormChanges(t *testing.T) {
 		Created:        now.Add(10 * time.Hour),
 		Updated:        now.Add(10 * time.Hour),
 	}
-	changedFields6 := FormChanges(originalPerson, modifiedPerson6, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields6), 0, "Unexpected number of changed fields for entity where ONLY the Created and Updated dates changed. These dates are expected to be ignored.")
+	Convey("Getting FormChanges (case 5)", t, func() {
+		changedFields6 := FormChanges(originalPerson, modifiedPerson6, nil, nil)
+		Convey("Unexpected number of changed fields for entity where ONLY the Created and Updated dates changed. These dates are expected to be ignored.", func() {
+			So(len(changedFields6), ShouldEqual, 0)
+		})
+	})
 
 	//Modify nothing but only the form ignored field
 	modifiedPerson7 := &tmpPersonStructForFormChanges{
@@ -221,23 +303,23 @@ func TestFormChanges(t *testing.T) {
 		Created:        now,
 		Updated:        now,
 	}
-	changedFields7 := FormChanges(originalPerson, modifiedPerson7, nil, nil)
-	AssertEqualIntAndFailNow(t, len(changedFields7), 0, "Unexpected number of changed fields for entity where ONLY the SurnameIgnored changed, which is a field to be ignored..")
+	Convey("Getting FormChanges (case 6)", t, func() {
+		changedFields7 := FormChanges(originalPerson, modifiedPerson7, nil, nil)
+		Convey("Unexpected number of changed fields for entity where ONLY the SurnameIgnored changed, which is a field to be ignored..", func() {
+			So(len(changedFields7), ShouldEqual, 0)
+		})
+	})
 }
 
 type tmpEmptyStruct1 struct{}
 type tmpEmptyStruct2 struct{}
 
 func doTestPassingNonStructPointer_ForTestGetAllFieldsOfStruct(t *testing.T) {
-	defer func() {
-		recover()
-	}()
-
-	tmpStruct1 := tmpEmptyStruct1{}
-	ignoreSettings := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: false, Relationals: false}
-	GetAllFieldsOfStruct(tmpStruct1, ignoreSettings)
-
-	AssertAndFailNow(t, false, "The previous line should not have succeeded. We should require a POINTER, but we are not passing in a pointer.")
+	Convey("This call should panic. We should require a POINTER, but we are not passing in a pointer.", t, func() {
+		tmpStruct1 := tmpEmptyStruct1{}
+		ignoreSettings := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: false, Relationals: false}
+		So(func() { GetAllFieldsOfStruct(tmpStruct1, ignoreSettings) }, ShouldPanic)
+	})
 }
 func TestGetAllFieldsOfStruct_AndGetAllFieldNamesOfStruct(t *testing.T) {
 	doTestPassingNonStructPointer_ForTestGetAllFieldsOfStruct(t)
@@ -259,52 +341,74 @@ func TestGetAllFieldsOfStruct_AndGetAllFieldNamesOfStruct(t *testing.T) {
 		Created:            time.Now(),
 		Updated:            time.Now(),
 	}
-	ignoreSettingsNone := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: false, Relationals: false}
-	allFields := GetAllFieldsOfStruct(&person2, ignoreSettingsNone)
-	allFieldNames := GetAllFieldNamesOfStruct(&person2, ignoreSettingsNone)
-	AssertEqualIntAndFailNow(t, len(allFields), 6, "Unexpected number of allFields.")         // Pointer fields are ignored by default
-	AssertEqualIntAndFailNow(t, len(allFieldNames), 6, "Unexpected number of allFieldNames.") // Pointer fields are ignored by default
+	Convey("TestGetAllFieldsOfStruct_AndGetAllFieldNamesOfStruct", t, func() {
+		ignoreSettingsNone := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: false, Relationals: false}
+		allFields := GetAllFieldsOfStruct(&person2, ignoreSettingsNone)
+		allFieldNames := GetAllFieldNamesOfStruct(&person2, ignoreSettingsNone)
+		Convey("Unexpected number of allFields (pointer fields are ignored by default).", func() {
+			So(len(allFields), ShouldEqual, 6)
+		})
+		Convey("Unexpected number of allFieldNames (pointer fields are ignored by default).", func() {
+			So(len(allFieldNames), ShouldEqual, 6)
+		})
 
-	ignoreSettingsOrmSkipped := &IgnoreFieldTypes{OrmSkipped: true, Created: false, Updated: false, Relationals: false}
-	allFieldsIgnoreOrmSkipped := GetAllFieldsOfStruct(&person2, ignoreSettingsOrmSkipped)
-	allFieldNamesIgnoreOrmSkipped := GetAllFieldNamesOfStruct(&person2, ignoreSettingsOrmSkipped)
-	AssertEqualIntAndFailNow(t, len(allFieldsIgnoreOrmSkipped), 5, "Unexpected number of allFieldsIgnoreOrmSkipped.")
-	AssertEqualIntAndFailNow(t, len(allFieldNamesIgnoreOrmSkipped), 5, "Unexpected number of allFieldNamesIgnoreOrmSkipped.")
+		ignoreSettingsOrmSkipped := &IgnoreFieldTypes{OrmSkipped: true, Created: false, Updated: false, Relationals: false}
+		allFieldsIgnoreOrmSkipped := GetAllFieldsOfStruct(&person2, ignoreSettingsOrmSkipped)
+		allFieldNamesIgnoreOrmSkipped := GetAllFieldNamesOfStruct(&person2, ignoreSettingsOrmSkipped)
+		Convey("Unexpected number of allFieldsIgnoreOrmSkipped.", func() {
+			So(len(allFieldsIgnoreOrmSkipped), ShouldEqual, 5)
+		})
+		Convey("Unexpected number of allFieldNamesIgnoreOrmSkipped.", func() {
+			So(len(allFieldNamesIgnoreOrmSkipped), ShouldEqual, 5)
+		})
 
-	ignoreSettingsSkipCreated := &IgnoreFieldTypes{OrmSkipped: false, Created: true, Updated: false, Relationals: false}
-	allFieldsIgnoreSkipCreated := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipCreated)
-	allFieldNamesIgnoreSkipCreated := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipCreated)
-	AssertEqualIntAndFailNow(t, len(allFieldsIgnoreSkipCreated), 5, "Unexpected number of allFieldsIgnoreSkipCreated.")
-	AssertEqualIntAndFailNow(t, len(allFieldNamesIgnoreSkipCreated), 5, "Unexpected number of allFieldNamesIgnoreSkipCreated.")
+		ignoreSettingsSkipCreated := &IgnoreFieldTypes{OrmSkipped: false, Created: true, Updated: false, Relationals: false}
+		allFieldsIgnoreSkipCreated := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipCreated)
+		allFieldNamesIgnoreSkipCreated := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipCreated)
+		Convey("Unexpected number of allFieldsIgnoreSkipCreated.", func() {
+			So(len(allFieldsIgnoreSkipCreated), ShouldEqual, 5)
+		})
+		Convey("Unexpected number of allFieldNamesIgnoreSkipCreated.", func() {
+			So(len(allFieldNamesIgnoreSkipCreated), ShouldEqual, 5)
+		})
 
-	ignoreSettingsSkipUpdated := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: true, Relationals: false}
-	allFieldsIgnoreSkipUpdated := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipUpdated)
-	allFieldNamesIgnoreSkipUpdated := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipUpdated)
-	AssertEqualIntAndFailNow(t, len(allFieldsIgnoreSkipUpdated), 5, "Unexpected number of allFieldsIgnoreSkipUpdated.")
-	AssertEqualIntAndFailNow(t, len(allFieldNamesIgnoreSkipUpdated), 5, "Unexpected number of allFieldNamesIgnoreSkipUpdated.")
+		ignoreSettingsSkipUpdated := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: true, Relationals: false}
+		allFieldsIgnoreSkipUpdated := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipUpdated)
+		allFieldNamesIgnoreSkipUpdated := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipUpdated)
+		Convey("Unexpected number of allFieldsIgnoreSkipUpdated.", func() {
+			So(len(allFieldsIgnoreSkipUpdated), ShouldEqual, 5)
+		})
+		Convey("Unexpected number of allFieldNamesIgnoreSkipUpdated.", func() {
+			So(len(allFieldNamesIgnoreSkipUpdated), ShouldEqual, 5)
+		})
 
-	ignoreSettingsSkipRelationals := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: false, Relationals: true}
-	allFieldsIgnoreSkipRelationals := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipRelationals)
-	allFieldNamesIgnoreSkipRelationals := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipRelationals)
-	AssertEqualIntAndFailNow(t, len(allFieldsIgnoreSkipRelationals), 6, "Unexpected number of allFieldsIgnoreSkipRelationals.")         // Pointer fields are ignored by default
-	AssertEqualIntAndFailNow(t, len(allFieldNamesIgnoreSkipRelationals), 6, "Unexpected number of allFieldNamesIgnoreSkipRelationals.") // Pointer fields are ignored by default
+		ignoreSettingsSkipRelationals := &IgnoreFieldTypes{OrmSkipped: false, Created: false, Updated: false, Relationals: true}
+		allFieldsIgnoreSkipRelationals := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipRelationals)
+		allFieldNamesIgnoreSkipRelationals := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipRelationals)
+		Convey("Unexpected number of allFieldsIgnoreSkipRelationals (pointer fields are ignored by default).", func() {
+			So(len(allFieldsIgnoreSkipRelationals), ShouldEqual, 6)
+		})
+		Convey("Unexpected number of allFieldNamesIgnoreSkipRelationals (pointer fields are ignored by default).", func() {
+			So(len(allFieldNamesIgnoreSkipRelationals), ShouldEqual, 6)
+		})
 
-	ignoreSettingsSkipAllFourTypes := &IgnoreFieldTypes{OrmSkipped: true, Created: true, Updated: true, Relationals: true}
-	allFieldsIgnoreSkipAllFourTypes := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipAllFourTypes)
-	allFieldNamesIgnoreSkipAllFourTypes := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipAllFourTypes)
-	AssertEqualIntAndFailNow(t, len(allFieldsIgnoreSkipAllFourTypes), 3, "Unexpected number of allFieldsIgnoreSkipAllFourTypes.")
-	AssertEqualIntAndFailNow(t, len(allFieldNamesIgnoreSkipAllFourTypes), 3, "Unexpected number of allFieldNamesIgnoreSkipAllFourTypes.")
+		ignoreSettingsSkipAllFourTypes := &IgnoreFieldTypes{OrmSkipped: true, Created: true, Updated: true, Relationals: true}
+		allFieldsIgnoreSkipAllFourTypes := GetAllFieldsOfStruct(&person2, ignoreSettingsSkipAllFourTypes)
+		allFieldNamesIgnoreSkipAllFourTypes := GetAllFieldNamesOfStruct(&person2, ignoreSettingsSkipAllFourTypes)
+		Convey("Unexpected number of allFieldsIgnoreSkipAllFourTypes.", func() {
+			So(len(allFieldsIgnoreSkipAllFourTypes), ShouldEqual, 3)
+		})
+		Convey("Unexpected number of allFieldNamesIgnoreSkipAllFourTypes.", func() {
+			So(len(allFieldNamesIgnoreSkipAllFourTypes), ShouldEqual, 3)
+		})
+	})
 }
 
 func doTestPassingNonStructPointer_ForTestDoesStructContainField(t *testing.T) {
-	defer func() {
-		recover()
-	}()
-
-	tmpStruct1 := tmpEmptyStruct1{}
-	DoesStructContainField(tmpStruct1, "")
-
-	AssertAndFailNow(t, false, "The previous line should not have succeeded. We should require a POINTER, but we are not passing in a pointer.")
+	Convey("This call should panic. We should require a POINTER, but we are not passing in a pointer.", t, func() {
+		tmpStruct1 := tmpEmptyStruct1{}
+		So(func() { DoesStructContainField(tmpStruct1, "") }, ShouldPanic)
+	})
 }
 func TestDoesStructContainField(t *testing.T) {
 	doTestPassingNonStructPointer_ForTestDoesStructContainField(t)
@@ -315,7 +419,15 @@ func TestDoesStructContainField(t *testing.T) {
 		StructPointer *tmpEmptyStruct1
 	}{}
 
-	AssertAndFailNow(t, DoesStructContainField(tmpStruct, "Name"), "Unexpected because the struct does contain field 'Name'")
-	AssertAndFailNow(t, DoesStructContainField(tmpStruct, "Age"), "Unexpected because the struct does contain field 'Age'")
-	AssertAndFailNow(t, DoesStructContainField(tmpStruct, "StructPointer"), "Unexpected because the struct does contain field 'StructPointer'")
+	Convey("TestDoesStructContainField", t, func() {
+		Convey("Unexpected because the struct does contain field 'Name'", func() {
+			So(DoesStructContainField(tmpStruct, "Name"), ShouldBeTrue)
+		})
+		Convey("Unexpected because the struct does contain field 'Age'", func() {
+			So(DoesStructContainField(tmpStruct, "Age"), ShouldBeTrue)
+		})
+		Convey("Unexpected because the struct does contain field 'StructPointer'", func() {
+			So(DoesStructContainField(tmpStruct, "StructPointer"), ShouldBeTrue)
+		})
+	})
 }
