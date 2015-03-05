@@ -64,11 +64,12 @@ func SetupServerConfigs_AndAppContext(configProvider IConfigContainer, logger IL
 	beego.HttpPort = int(port)
 	beego.HttpServerTimeOut = configProvider.DefaultInt64("server::http_server_timeout", 0)
 
-	uploadDir := configProvider.DefaultString("file_paths::temp_upload_dir", "temp_uploads")
+	uploadDir := configProvider.DefaultString("file_paths::temp_uploads_dir", "temp_uploads")
 	profilePicsDir := configProvider.DefaultString("file_paths::profile_pics_dir", "profile_pics")
+	uploadedImagesDir := configProvider.DefaultString("file_paths::uploaded_images_dir", "uploaded_images")
 
 	//Context settings
 	maxProfilePicWidth := uint(configProvider.DefaultInt("other::max_profile_pic_width", 128))
-	DefaultBaseAppContext = CreateBaseAppContext(logger, baseAppUrl, maxProfilePicWidth, uploadDir, profilePicsDir)
+	DefaultBaseAppContext = CreateBaseAppContext(logger, baseAppUrl, maxProfilePicWidth, uploadDir, profilePicsDir, uploadedImagesDir)
 	return DefaultBaseAppContext
 }

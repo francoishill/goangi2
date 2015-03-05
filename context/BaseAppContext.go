@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"github.com/francoishill/goangi2/utils/httpUtils"
 	"github.com/francoishill/goangi2/utils/imageUtils"
 	. "github.com/francoishill/goangi2/utils/loggingUtils"
@@ -14,12 +15,13 @@ import (
 var DefaultBaseAppContext *BaseAppContext
 
 type BaseAppContext struct {
-	Logger               ILogger
-	baseAppUrl_WithSlash string
-	baseAppUrl_NoSlash   string
-	MaxProfilePicWidth   uint
-	UploadDirectory      string
-	ProfilePicsDirectory string
+	Logger                  ILogger
+	baseAppUrl_WithSlash    string
+	baseAppUrl_NoSlash      string
+	MaxProfilePicWidth      uint
+	UploadDirectory         string
+	ProfilePicsDirectory    string
+	UploadedImagesDirectory string
 }
 
 func (this *BaseAppContext) checkError(err error) {
@@ -28,16 +30,17 @@ func (this *BaseAppContext) checkError(err error) {
 	}
 }
 
-func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxProfilePicWidth uint, uploadDir, profilePicsDir string) *BaseAppContext {
+func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string) *BaseAppContext {
 	baseAppUrlNoSlash := strings.TrimRight(baseAppUrl, "/")
 
 	return &BaseAppContext{
-		Logger:               logger,
-		baseAppUrl_WithSlash: baseAppUrlNoSlash + "/",
-		baseAppUrl_NoSlash:   baseAppUrlNoSlash,
-		MaxProfilePicWidth:   maxProfilePicWidth,
-		UploadDirectory:      uploadDir,
-		ProfilePicsDirectory: profilePicsDir,
+		Logger:                  logger,
+		baseAppUrl_WithSlash:    baseAppUrlNoSlash + "/",
+		baseAppUrl_NoSlash:      baseAppUrlNoSlash,
+		MaxProfilePicWidth:      maxProfilePicWidth,
+		UploadDirectory:         uploadDir,
+		ProfilePicsDirectory:    profilePicsDir,
+		UploadedImagesDirectory: uploadedImagesDir,
 	}
 }
 
@@ -57,11 +60,32 @@ func (this *BaseAppContext) getTempImageFileFullPath(fileNameOnly string) string
 	return filepath.Join(this.UploadDirectory, fileNameOnly)
 }
 
+func (this *BaseAppContext) getProfilePicFileFullPath(userId int64) string {
+	return filepath.Join(this.ProfilePicsDirectory, fmt.Sprintf("%d", userId))
+}
+
+func (this *BaseAppContext) getUploadedImagePermanentFullPath(imageFileName string) string {
+	return filepath.Join(this.UploadedImagesDirectory, fmt.Sprintf("%s", imageFileName))
+}
+
 func (this *BaseAppContext) ReadTempImageFileBytes(fileNameOnly string) []byte {
 	fullTempFilePath := this.getTempImageFileFullPath(fileNameOnly)
 	fileBytes, err := ioutil.ReadFile(fullTempFilePath)
 	this.checkError(err)
 	return fileBytes
+}
+
+func (this *BaseAppContext) ReadPermanentImageFileBytes(fileNameOnly string) []byte {
+	fullTempFilePath := this.getUploadedImagePermanentFullPath(fileNameOnly)
+	fileBytes, err := ioutil.ReadFile(fullTempFilePath)
+	this.checkError(err)
+	return fileBytes
+}
+
+func (this *BaseAppContext) DeleteTempImageFile(fileNameOnly string) {
+	fullTempFilePath := this.getTempImageFileFullPath(fileNameOnly)
+	err := os.Remove(fullTempFilePath)
+	this.checkError(err)
 }
 
 func (this *BaseAppContext) UploadAndResizeImageToTempUploadDir(file multipart.File, originalFilenamePrefix, resizedFilenamePrefix string, maxImageWidth uint) string {
@@ -85,4 +109,20 @@ func (this *BaseAppContext) UploadResizedProfilePic(file multipart.File) string 
 	origImageFilenamePrefix := "temp-profilepic-origsize-"
 	resizedImageFilenamePrefix := "temp-profilepic-resized-"
 	return this.UploadAndResizeImageToTempUploadDir(file, origImageFilenamePrefix, resizedImageFilenamePrefix, this.MaxProfilePicWidth)
+}
+
+func (this *BaseAppContext) MoveTempProfilePicToPermanentFolder(profilePicFileNameOnly string, userId int64) {
+	origTempFullFilePath := this.getTempImageFileFullPath(profilePicFileNameOnly)
+	newPermanentFullFilePath := this.getProfilePicFileFullPath(userId)
+
+	err := os.Rename(origTempFullFilePath, newPermanentFullFilePath)
+	this.checkError(err)
+}
+
+func (this *BaseAppContext) MoveTempImageFileToPermanentFolder(tempFileNameOnly, finalImageName string) {
+	origTempFullFilePath := this.getTempImageFileFullPath(tempFileNameOnly)
+	newPermanentFullFilePath := this.getUploadedImagePermanentFullPath(finalImageName)
+
+	err := os.Rename(origTempFullFilePath, newPermanentFullFilePath)
+	this.checkError(err)
 }
