@@ -203,6 +203,63 @@ func (this *beegoOrmRepo) BaseUpdateM2MByAddAndRemove(ormContext *OrmContext,
 	ormWrapperToUse.CommitTransaction()
 }
 
+// func (this *beegoOrmRepo) BaseListEntities_OrderBy_Limit_Offset__WhereM2MCountIsZero(
+// 	ormContext *OrmContext,
+// 	dbDriverName string,
+// 	leftTableName string,
+// 	leftTable_IdField string,
+// 	m2mTableName string,
+// 	m2mTableName_LeftTableIdField string,
+// 	columnNameOfRelationship string,
+// 	otherTableName string,
+// 	orderByFields []string,
+// 	limit int64,
+// 	offset int64,
+// 	relatedFieldsToLoad *RelatedFieldsToLoad,
+// 	sliceToPopulatePointer interface{}) {
+
+// 	/*qs := getNewBeegoOrm().QueryTable(leftTableName)
+// 	if limit > 0 && offset > 0 {
+// 		qs = qs.Limit(limit, offset)
+// 	} else if limit > 0 {
+// 		qs = qs.Limit(limit)
+// 	} else if offset > 0 {
+// 		qs = qs.Offset(offset)
+// 	}*/
+
+// 	qb, err := orm.NewQueryBuilder(dbDriverName)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	qb.Select(leftTableName + "*").
+// 		From(leftTableName).
+// 		LeftJoin(m2mTableName).On(leftTableName + "." + leftTable_IdField + " = " + m2mTableName + "." + m2mTableName_LeftTableIdField)
+
+// 	if len(orderByFields) > 0 {
+// 		qb = qb.OrderBy(orderByFields...)
+// 	}
+
+// 	if limit > 0 {
+// 		qb = qb.Limit(limit)
+// 	}
+
+// 	if offset > 0 {
+// 		qb = qb.Offset(offset)
+// 	}
+
+// 	sql := qb.String()
+
+// 	if relatedFieldsToLoad != nil {
+// 		fieldNames := relatedFieldsToLoad.GetFieldNames(true, false)
+// 		for _, relFieldName := range fieldNames {
+// 			qs = qs.RelatedSel(relFieldName)
+// 		}
+// 	}
+
+// 	o := orm.NewOrm()
+// 	o.Raw(sql, 20).QueryRows(&users)
+// }
+
 func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy(
 	ormContext *OrmContext,
 	queryTableName string,
@@ -267,36 +324,33 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 		qs = qs.OrderBy(orderByFields...)
 	}
 
-	_, err := dupListObjects(qs, sliceToPopulatePointer)
+	var sliceValToUse reflect.Value
+
+	switch reflect.TypeOf(sliceToPopulatePointer).Kind() {
+	case reflect.Ptr:
+		sliceVal := reflect.Indirect(reflect.ValueOf(sliceToPopulatePointer))
+
+		switch reflect.TypeOf(sliceVal.Interface()).Kind() {
+		case reflect.Slice:
+			sliceValToUse = sliceVal
+		}
+		break
+	case reflect.Slice:
+		sliceVal := reflect.ValueOf(sliceToPopulatePointer)
+		sliceValToUse = sliceVal
+		break
+	default:
+		panic("Unexpected slice type to list entities")
+		break
+	}
+
+	_, err := dupListObjects(qs, sliceValToUse.Addr().Interface())
 	checkError(err)
 
 	if relatedFieldsToLoad != nil {
 		externalFields := relatedFieldsToLoad.GetFieldNames(false, true)
+
 		for _, relFieldName := range externalFields {
-			didSetSliceValToUse := false
-			var sliceValToUse reflect.Value
-
-			switch reflect.TypeOf(sliceToPopulatePointer).Kind() {
-			case reflect.Ptr:
-				sliceVal := reflect.Indirect(reflect.ValueOf(sliceToPopulatePointer))
-
-				switch reflect.TypeOf(sliceVal.Interface()).Kind() {
-				case reflect.Slice:
-					sliceValToUse = sliceVal
-					didSetSliceValToUse = true
-				}
-				break
-			case reflect.Slice:
-				sliceVal := reflect.ValueOf(sliceToPopulatePointer)
-				sliceValToUse = sliceVal
-				didSetSliceValToUse = true
-				break
-			}
-
-			if !didSetSliceValToUse {
-				panic("Unexpected slice type to list entities")
-			}
-
 			for i := 0; i < sliceValToUse.Len(); i++ {
 				//sliceEntityPointer := sliceValToUse.Index(i).Addr().Interface()
 				sliceEntityPointer := sliceValToUse.Index(i).Interface()

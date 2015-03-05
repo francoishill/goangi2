@@ -28,6 +28,16 @@ type iOrmRepo interface {
 		removeListToRelationship,
 		addListToRelationship []interface{})
 
+	/*BaseListEntities_OrderBy_Limit_Offset__WhereM2MCountIsZero(
+	ormContext *OrmContext,
+	queryTableName string,
+	columnNameOfRelationship string,
+	orderByFields []string,
+	limit int64,
+	offset int64,
+	relatedFieldsToLoad *RelatedFieldsToLoad,
+	sliceToPopulatePointer interface{})*/
+
 	BaseListEntities_ANDFilters_OrderBy(
 		ormContext *OrmContext,
 		queryTableName string,

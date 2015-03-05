@@ -26,12 +26,13 @@ func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncFo
 	maxOpenConnections := configProvider.DefaultInt("database::max_open_conn", 50)
 
 	orm.DefaultTimeLoc = time.Local
-	orm.RegisterDataBase("default", driverName, dataSource, maxIdleConnections, maxOpenConnections)
+	err := orm.RegisterDataBase("default", driverName, dataSource, maxIdleConnections, maxOpenConnections)
+	checkError(err)
 
 	if ormSyncNow {
 		force := ormSyncForce
 		verbose := true
-		err := orm.RunSyncdb("default", force, verbose)
+		err = orm.RunSyncdb("default", force, verbose)
 		checkError(err)
 	}
 
@@ -41,8 +42,13 @@ func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncFo
 	}
 }
 
-func SetupDefaultSecurityContext(configProvider IConfigContainer) {
-	DefaultCookieSecurityContext = CreateCookieSecurityContext(configProvider.MustString("security::cookie_security_key"))
+func SetupDefaultSecurityContext(configProvider IConfigContainer) *CookieSecurityContext {
+	DefaultCookieSecurityContext = CreateCookieSecurityContext(
+		configProvider.MustString("security::cookie_security_key"),
+		configProvider.MustString("security::web_oauth2_client_id"),
+		configProvider.MustString("security::web_oauth2_client_secret"),
+	)
+	return DefaultCookieSecurityContext
 }
 
 func SetupServerConfigs_AndAppContext(configProvider IConfigContainer, logger ILogger) *BaseAppContext {

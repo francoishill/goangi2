@@ -23,6 +23,12 @@ func (this *BaseAuthorizedController) Prepare() {
 
 	this.OsinResponse = OsinServerObject.NewResponse()
 
+	accessTokenFromCookie, successGotTokenFromCookie := GetDecryptedAccessTokenFromCookie(this.Ctx)
+	if successGotTokenFromCookie {
+		this.Ctx.Request.ParseForm()
+		this.Ctx.Request.Form.Set("code", accessTokenFromCookie)
+	}
+
 	this.AuthorizedContext = GetAuthorizedContextFromAccessToken(this.OsinResponse, this.Ctx)
 	if this.AuthorizedContext == nil {
 		panic("Internal server error [code 600001]")

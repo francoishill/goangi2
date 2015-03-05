@@ -1,6 +1,7 @@
 package oauth2Utils
 
 import (
+	"encoding/base64"
 	"github.com/RangelReale/osin"
 	"github.com/astaxie/beego/context"
 	"net/http"
@@ -10,7 +11,8 @@ import (
 )
 
 const (
-	cOSIN_ACCESS_OUTPUT_ACCESS_TOKEN_MAP_KEY = "access_token"
+	cOSIN_ACCESS_OUTPUT_ACCESS_TOKEN_MAP_KEY         = "access_token"
+	cSCOPE_ALL_SCCOPES_FOR_WEB_PASWORD_AUTHENTICATED = "all_web_pwd"
 )
 
 type StringPredicate func(string) bool
@@ -84,6 +86,10 @@ func GetAuthorizedContextFromAccessToken(osinResponse *osin.Response, ctx *conte
 }
 
 func CheckRequiredScopeSatisfied(responseWriter http.ResponseWriter, authorizedScope string, functionToCheckRequiredScope StringPredicate) {
+	if authorizedScope == cSCOPE_ALL_SCCOPES_FOR_WEB_PASWORD_AUTHENTICATED {
+		return
+	}
+
 	if !functionToCheckRequiredScope(authorizedScope) {
 		panic(createOsinAuthorizeError(E_INSUFFICIENT_SCOPE, errorMapKeys[E_INSUFFICIENT_SCOPE]))
 	}
@@ -125,10 +131,26 @@ func ExtractAccessTokenFromSuccessfulResponseData(responseData osin.ResponseData
 
 type outputHandlerFunc func(ctx *context.Context) bool
 
-func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, authUserProvider iAuthUserProvider, setCookies bool, successfulOutputHandler outputHandlerFunc) {
+func replaceHeadersInlineForWebClient(ctx *context.Context, cookieSecurityContext *CookieSecurityContext) {
+	ctx.Request.Form.Del("client")
+
+	basicAuthorizationToken := base64.StdEncoding.EncodeToString([]byte(cookieSecurityContext.WebOauth2ClientId + ":" + cookieSecurityContext.WebOauth2ClientSecret))
+	ctx.Request.Header.Set("Authorization", "Basic "+basicAuthorizationToken)
+
+	ctx.Request.Form.Set("grant_type", "password")
+	ctx.Request.Form.Set("scope", cSCOPE_ALL_SCCOPES_FOR_WEB_PASWORD_AUTHENTICATED)
+}
+
+func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, cookieSecurityContext *CookieSecurityContext, authUserProvider iAuthUserProvider, setCookies bool, successfulOutputHandler outputHandlerFunc) {
 	resp := OsinServerObject.NewResponse()
 	r := ctx.Request
 	w := ctx.ResponseWriter
+
+	isWebClient := ctx.Request.Form.Get("client") == "web"
+
+	if isWebClient {
+		replaceHeadersInlineForWebClient(ctx, cookieSecurityContext)
+	}
 
 	var userId int64
 
