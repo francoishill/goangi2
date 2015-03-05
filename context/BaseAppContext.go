@@ -5,6 +5,7 @@ import (
 	"github.com/francoishill/goangi2/utils/httpUtils"
 	"github.com/francoishill/goangi2/utils/imageUtils"
 	. "github.com/francoishill/goangi2/utils/loggingUtils"
+	. "github.com/francoishill/goangi2/utils/osUtils"
 	"io/ioutil"
 	"mime/multipart"
 	"os"
@@ -32,6 +33,18 @@ func (this *BaseAppContext) checkError(err error) {
 
 func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string) *BaseAppContext {
 	baseAppUrlNoSlash := strings.TrimRight(baseAppUrl, "/")
+
+	if !DirectoryExists(uploadDir) {
+		panic("Uploads directory does not exist: " + uploadDir)
+	}
+
+	if !DirectoryExists(profilePicsDir) {
+		panic("Profile pics directory does not exist: " + profilePicsDir)
+	}
+
+	if !DirectoryExists(uploadedImagesDir) {
+		panic("Upload images directory does not exist: " + uploadedImagesDir)
+	}
 
 	return &BaseAppContext{
 		Logger:                  logger,
