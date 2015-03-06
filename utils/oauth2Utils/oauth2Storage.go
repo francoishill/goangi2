@@ -7,7 +7,7 @@ import (
 )
 
 type OAuth2Storage struct {
-	// clients map[string]*osin.Client
+	// clients map[string]*osin.DefaultClient
 	// authorize map[string]*osin.AuthorizeData
 	// access    map[string]*osin.AccessData
 	// refresh   map[string]string
@@ -17,7 +17,15 @@ func NewOAuth2Storage() *OAuth2Storage {
 	return &OAuth2Storage{}
 }
 
-func (s *OAuth2Storage) GetClient(clientId string) (returnClient *osin.Client, returnErr error) {
+func (s *OAuth2Storage) Clone() osin.Storage {
+	return s
+}
+
+func (s *OAuth2Storage) Close() {
+	//Do nothing
+}
+
+func (s *OAuth2Storage) GetClient(clientId string) (returnClient osin.Client, returnErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			returnClient = nil

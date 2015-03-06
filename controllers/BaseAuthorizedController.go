@@ -37,6 +37,12 @@ func (this *BaseAuthorizedController) Prepare() {
 	//TODO: Not handling cookies at this point
 }
 
+func (this *BaseAuthorizedController) Finish() {
+	if this.OsinResponse != nil {
+		this.OsinResponse.Close()
+	}
+}
+
 func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
 	defer this.BaseController.RecoverPanicAndServeError() //BaseController to catch the non-osin errors
 

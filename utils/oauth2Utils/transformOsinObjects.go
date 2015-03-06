@@ -1,17 +1,17 @@
 package oauth2Utils
 
 //This file mainly deals with translating our OAuth2Authorize, OAuth2Access and OAuth2Client_NonDb into
-//osin.AuthorizeData, osin.AccessData and osin.Client
+//osin.AuthorizeData, osin.AccessData and osin.DefaultClient
 import (
 	"github.com/RangelReale/osin"
 )
 
-func ConvertIntoOsinClient(client *OAuth2Client_NonDb) *osin.Client {
+func ConvertIntoOsinClient(client *OAuth2Client_NonDb) *osin.DefaultClient {
 	if client == nil {
 		return nil
 	}
 
-	return &osin.Client{
+	return &osin.DefaultClient{
 		Id:          client.ClientId,
 		Secret:      client.ClientSecret,
 		RedirectUri: client.RedirectUri,
@@ -21,8 +21,8 @@ func ConvertIntoOsinClient(client *OAuth2Client_NonDb) *osin.Client {
 
 func ConvertFromOsinAuthorize(osinAuthorize *osin.AuthorizeData) *OAuth2Authorize {
 	var client *OAuth2Client_NonDb = nil
-	if osinAuthorize.Client != nil && osinAuthorize.Client.Id != "" {
-		if tmpClient, found := GetClientUsingClientId(osinAuthorize.Client.Id); found {
+	if osinAuthorize.Client != nil && osinAuthorize.Client.GetId() != "" {
+		if tmpClient, found := GetClientUsingClientId(osinAuthorize.Client.GetId()); found {
 			client = tmpClient
 		}
 	}
@@ -62,8 +62,8 @@ func ConvertIntoOsinAuthorize(authorize *OAuth2Authorize) *osin.AuthorizeData {
 
 func ConvertFromOsinAccess(osinAccess *osin.AccessData) *OAuth2Access {
 	var client *OAuth2Client_NonDb = nil
-	if osinAccess.Client != nil && osinAccess.Client.Id != "" {
-		if tmpClient, found := GetClientUsingClientId(osinAccess.Client.Id); found {
+	if osinAccess.Client != nil && osinAccess.Client.GetId() != "" {
+		if tmpClient, found := GetClientUsingClientId(osinAccess.Client.GetId()); found {
 			client = tmpClient
 		}
 	}

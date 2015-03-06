@@ -102,6 +102,8 @@ func ServeAccessTokenWithRouter(ctx *context.Context) {
 	InjectCodeIntoFormIfWasPassedViaAuthorizationHeader(r)
 
 	resp := OsinServerObject.NewResponse()
+	defer resp.Close()
+
 	if ir := OsinServerObject.HandleInfoRequest(resp, r); ir != nil {
 		OsinServerObject.FinishInfoRequest(resp, r, ir)
 	}
@@ -143,6 +145,8 @@ func replaceHeadersInlineForWebClient(ctx *context.Context, cookieSecurityContex
 
 func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, cookieSecurityContext *CookieSecurityContext, authUserProvider iAuthUserProvider, setCookies bool, successfulOutputHandler outputHandlerFunc) {
 	resp := OsinServerObject.NewResponse()
+	defer resp.Close()
+
 	r := ctx.Request
 	w := ctx.ResponseWriter
 
