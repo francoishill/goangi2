@@ -33,11 +33,6 @@ func SetEncryptedAccessTokenInCookie(ctx *context.Context, accessToken string) {
 }
 
 func DeleteAccessTokenCookies(ctx *context.Context) {
-	saltCookieWasSet := strings.Trim(ctx.GetCookie(cSALT_SALT_COOKIE_KEY), " ") != ""
-	if saltCookieWasSet {
-		totalExpireSeconds := int64(5 * 60) //5mins
-		ctx.SetCookie(cTEMP_NOTICE_INVALID_ACCESS_TOKEN, "true", totalExpireSeconds)
-	}
 	ctx.SetCookie(cSALT_SALT_COOKIE_KEY, "")
 	ctx.SetCookie(cUSER_AGENT_AND_ACCESS_TOKEN_COOKIE_KEY_NAME, "")
 }
