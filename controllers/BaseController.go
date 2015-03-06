@@ -8,7 +8,6 @@ import (
 	. "github.com/francoishill/goangi2/responses"
 	. "github.com/francoishill/goangi2/utils/entityUtils"
 	. "github.com/francoishill/goangi2/utils/errorUtils"
-	. "github.com/francoishill/goangi2/utils/oauth2Utils"
 )
 
 type BaseController struct {
@@ -87,12 +86,12 @@ func (this *BaseController) RecoverPanicAndServeError() {
 
 func (this *BaseController) RecoverPanicAndServeError_InControllerPrepare() {
 	if r := recover(); r != nil {
+		//This does not work correctly if the GZip is on
+		this.Controller.Ctx.Output.EnableGzip = false
+
 		this.Ctx.Output.SetStatus(500)
 		//Serve the error as-is, otherwise the osin errors will
 		switch e := r.(type) {
-		case *OsinAuthorizeError:
-			this.Data["json"] = e
-			this.ServeJson()
 		case string:
 			this.ServeJson_ErrorText(e)
 		case error:

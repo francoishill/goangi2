@@ -38,11 +38,13 @@ func (this *BaseAuthorizedController) Prepare() {
 }
 
 func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
-	defer this.BaseController.RecoverPanicAndServeError() //To catch the non-osin errors
+	defer this.BaseController.RecoverPanicAndServeError() //BaseController to catch the non-osin errors
 
 	if r := recover(); r != nil {
 		switch e := r.(type) {
 		case *OsinAuthorizeError:
+			//This does not work correctly if the GZip is on
+			this.Controller.Ctx.Output.EnableGzip = false
 			if strings.EqualFold(e.ErrorCode, E_INVALID_AUTH_DATA) {
 				DeleteAccessTokenCookies(this.Controller.Ctx)
 			}
@@ -50,9 +52,30 @@ func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
 			this.OsinResponse.SetError(e.ErrorCode, e.ErrorString)
 			OverwriteOsinResponseErrorWithOwn(this.OsinResponse)
 			osin.OutputJSON(this.OsinResponse, this.Ctx.ResponseWriter, this.Ctx.Request)
-		default:
-			panic(r) //So it can be caught by the Base Controller
+			break
 		}
+		panic(r) //So it can be caught by the Base Controller
+	}
+}
+
+func (this *BaseAuthorizedController) RecoverPanicAndServeError_InControllerPrepare() {
+	defer this.BaseController.RecoverPanicAndServeError_InControllerPrepare() //BaseController to catch the non-osin errors
+
+	if r := recover(); r != nil {
+		//Serve the error as-is, otherwise the osin errors will
+		switch e := r.(type) {
+		case *OsinAuthorizeError:
+			//This does not work correctly if the GZip is on
+			this.Controller.Ctx.Output.EnableGzip = false
+			if strings.EqualFold(e.ErrorCode, E_INVALID_AUTH_DATA) {
+				DeleteAccessTokenCookies(this.Controller.Ctx)
+			}
+			this.OsinResponse.ErrorStatusCode = 401
+			this.OsinResponse.SetError(e.ErrorCode, e.ErrorString)
+			OverwriteOsinResponseErrorWithOwn(this.OsinResponse)
+			break
+		}
+		panic(r)
 	}
 }
 
