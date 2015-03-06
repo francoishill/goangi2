@@ -49,6 +49,7 @@ func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
 	if r := recover(); r != nil {
 		switch e := r.(type) {
 		case *OsinAuthorizeError:
+			//TODO: I have a suspicion this block (OsinAuthorizeError) should never be reached. We handle OAuth stuff in the Prepare, so therefore gets caught in RecoverPanicAndServeError_InControllerPrepare
 			//This does not work correctly if the GZip is on
 			this.Controller.Ctx.Output.EnableGzip = false
 			if strings.EqualFold(e.ErrorCode, E_INVALID_AUTH_DATA) {
