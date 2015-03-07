@@ -96,12 +96,16 @@ func (this *BaseController) RecoverPanicAndServeError_InControllerPrepare() {
 		case *OsinAuthorizeError:
 			this.Data["json"] = e
 			this.ServeJson()
+			break
 		case string:
 			this.ServeJson_ErrorText(e)
+			break
 		case error:
 			this.ServeJson_ErrorText(e.Error())
+			break
 		default:
 			this.ServeJson_ErrorText(fmt.Sprintf("%+v", r))
+			break
 		}
 		this.StopRun()
 	}

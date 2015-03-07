@@ -18,7 +18,6 @@ type BaseAuthorizedController struct {
 
 func (this *BaseAuthorizedController) Prepare() {
 	defer this.RecoverPanicAndServeError_InControllerPrepare()
-
 	this.BaseController.Prepare()
 
 	this.OsinResponse = OsinServerObject.NewResponse()
@@ -51,15 +50,12 @@ func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
 		case *OsinAuthorizeError:
 			//TODO: I have a suspicion this block (OsinAuthorizeError) should never be reached. We handle OAuth stuff in the Prepare, so therefore gets caught in RecoverPanicAndServeError_InControllerPrepare
 
-			//This does not work correctly if the GZip is on
-			this.Controller.Ctx.Output.EnableGzip = false
 			if strings.EqualFold(e.ErrorCode, E_INVALID_AUTH_DATA) {
 				DeleteAccessTokenCookies(this.Controller.Ctx)
 			}
 			this.OsinResponse.ErrorStatusCode = 401
 			this.OsinResponse.SetError(e.ErrorCode, e.ErrorString)
 			OverwriteOsinResponseErrorWithOwn(this.OsinResponse)
-			osin.OutputJSON(this.OsinResponse, this.Ctx.ResponseWriter, this.Ctx.Request)
 			break
 		}
 		panic(r) //So it can be caught by the Base Controller
