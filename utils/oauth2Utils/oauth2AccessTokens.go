@@ -228,5 +228,6 @@ func InitOsinServerObject() {
 		osin.PASSWORD,
 		// osin.CLIENT_CREDENTIALS,
 	}
+	sconfig.ErrorStatusCode = 401
 	OsinServerObject = osin.NewServer(sconfig, NewOAuth2Storage())
 }
