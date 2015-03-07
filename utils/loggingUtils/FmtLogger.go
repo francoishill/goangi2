@@ -2,9 +2,6 @@ package loggingUtils
 
 import (
 	"fmt"
-	"strings"
-
-	. "github.com/francoishill/goangi2/utils/debugUtils"
 )
 
 type fmtLogger struct{}
@@ -42,29 +39,3 @@ func (this *fmtLogger) Debug(format string, v ...interface{}) {
 }
 
 func CreateNewFmtLogger() *fmtLogger { return &fmtLogger{} }
-
-func RecoverAndLogStackTrace_Error(messagePrefix string, loggerToUse ILogger) {
-	originalRecoveredObj := recover()
-	if originalRecoveredObj == nil {
-		return
-	}
-
-	hadLogger := loggerToUse != nil
-	l := loggerToUse
-	if l == nil {
-		l = CreateNewFmtLogger()
-	}
-
-	func() {
-		finalPrefix := strings.TrimRight(messagePrefix, ":")
-		if hadLogger {
-			defer func() {
-				if r2 := recover(); r2 != nil {
-					fmt.Println(fmt.Sprintf("ERROR while trying to log error: %+v", r2))
-					fmt.Println(fmt.Sprintf("Original error. %s: %+v. Stack trace:\n%s", finalPrefix, originalRecoveredObj, GetFullStackTrace_Pretty()))
-				}
-			}()
-		}
-		l.Warning(finalPrefix+": %+v. Stack trace:\n%s", originalRecoveredObj, GetFullStackTrace_Pretty())
-	}()
-}
