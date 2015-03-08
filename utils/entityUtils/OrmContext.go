@@ -15,17 +15,26 @@ func CreateOrmContext(logger ILogger, possibleParentTransactionalOrmWrapper *Orm
 	if loggerToUse == nil {
 		loggerToUse = CreateNewFmtLogger()
 	}
-	if possibleParentTransactionalOrmWrapper == nil {
-		possibleParentTransactionalOrmWrapper = CreateNewOrmWrapper(nil)
-	}
 	ormCtx := &OrmContext{
 		Logger:     loggerToUse,
-		OrmWrapper: possibleParentTransactionalOrmWrapper,
+		OrmWrapper: CreateNewOrmWrapper(possibleParentTransactionalOrmWrapper),
 	}
 	if beginTransaction {
 		ormCtx.OrmWrapper.BeginTransaction()
 	}
 	return ormCtx
+}
+
+func CreateOrmContext_FromAnother(ormContext *OrmContext, beginTransaction bool) *OrmContext {
+	if ormContext == nil {
+		returnContext := CreateDefaultOrmContext()
+		if beginTransaction {
+			returnContext.OrmWrapper.BeginTransaction()
+		}
+		return returnContext
+	} else {
+		return CreateOrmContext(ormContext.Logger, ormContext.OrmWrapper, beginTransaction)
+	}
 }
 
 func CreateDefaultOrmContext() *OrmContext {
