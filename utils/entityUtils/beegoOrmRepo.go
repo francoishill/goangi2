@@ -423,12 +423,20 @@ func (this *beegoOrmRepo) BaseCountEntities_ANDFilters(ormContext *OrmContext, q
 func (this *beegoOrmRepo) BaseLoadRelatedFields(ormContext *OrmContext, m interface{}, fieldName string) int64 {
 	var numLoaded int64
 	var err error
+	var ormInstance orm.Ormer = nil
 	if ormContext != nil {
-		numLoaded, err = ormContext.OrmWrapper.OrmInstance.LoadRelated(m, fieldName)
+		ormInstance = ormContext.OrmWrapper.OrmInstance
 	} else {
-		getNewBeegoOrm().LoadRelated(m, fieldName)
+		ormInstance = getNewBeegoOrm()
 	}
-	checkError(err)
+
+	numLoaded, err = ormInstance.LoadRelated(m, fieldName)
+	if err != nil {
+		//If the error is No Rows Found it means probably that we are trying to get a FK relationship where the field is NULL
+		if err != orm.ErrNoRows {
+			checkError(err)
+		}
+	}
 	return numLoaded
 }
 
