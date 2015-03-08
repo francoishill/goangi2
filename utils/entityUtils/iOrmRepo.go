@@ -38,6 +38,17 @@ type iOrmRepo interface {
 	relatedFieldsToLoad *RelatedFieldsToLoad,
 	sliceToPopulatePointer interface{})*/
 
+	BaseCountM2M(
+		ormContext *OrmContext,
+		entityObj interface{},
+		columnNameOfRelationship string) int64
+
+	BaseM2MRelationExists(
+		ormContext *OrmContext,
+		entityObj interface{},
+		columnNameOfRelationship string,
+		relationEntity interface{}) bool
+
 	BaseListEntities_ANDFilters_OrderBy(
 		ormContext *OrmContext,
 		queryTableName string,

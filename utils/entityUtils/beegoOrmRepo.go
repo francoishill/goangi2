@@ -260,6 +260,37 @@ func (this *beegoOrmRepo) BaseUpdateM2MByAddAndRemove(ormContext *OrmContext,
 // 	o.Raw(sql, 20).QueryRows(&users)
 // }
 
+func (this *beegoOrmRepo) BaseCountM2M(
+	ormContext *OrmContext,
+	entityObj interface{},
+	columnNameOfRelationship string) int64 {
+	var ormWrapperToUse *OrmWrapper
+	if ormContext == nil {
+		ormContext = CreateDefaultOrmContext()
+	}
+	ormWrapperToUse = CreateNewOrmWrapper(ormContext.OrmWrapper)
+
+	m2mObj := ormWrapperToUse.OrmInstance.QueryM2M(entityObj, columnNameOfRelationship)
+	cnt, err := m2mObj.Count()
+	checkError(err)
+	return cnt
+}
+
+func (this *beegoOrmRepo) BaseM2MRelationExists(
+	ormContext *OrmContext,
+	entityObj interface{},
+	columnNameOfRelationship string,
+	relationEntity interface{}) bool {
+	var ormWrapperToUse *OrmWrapper
+	if ormContext == nil {
+		ormContext = CreateDefaultOrmContext()
+	}
+	ormWrapperToUse = CreateNewOrmWrapper(ormContext.OrmWrapper)
+
+	m2mObj := ormWrapperToUse.OrmInstance.QueryM2M(entityObj, columnNameOfRelationship)
+	return m2mObj.Exist(relationEntity)
+}
+
 func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy(
 	ormContext *OrmContext,
 	queryTableName string,
