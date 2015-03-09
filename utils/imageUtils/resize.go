@@ -1,7 +1,6 @@
 package imageUtils
 
 import (
-	"fmt"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
@@ -12,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/nfnt/resize"
+
+	. "github.com/francoishill/goangi2/utils/errorUtils"
 )
 
 func localPanicIfHasError(potentialError error) {
@@ -58,10 +59,20 @@ func localPathExists(path string) (bool, error) {
 	return false, err
 }
 
-func ResizeImageFile(sourceFilePath, destinationFilePath string, maxWidth uint) {
+func ResizeImageFile(sourceFilePath, destinationFilePath string, sizeLimitMegaBytes int64, maxWidth uint, alwaysRemoveSourceFile bool) {
+	if alwaysRemoveSourceFile {
+		defer os.Remove(sourceFilePath)
+	}
+
 	imageFile, err := os.Open(sourceFilePath)
 	localPanicIfHasError(err)
 	defer imageFile.Close()
+
+	infoOfImageFile, err := imageFile.Stat()
+	localPanicIfHasError(err)
+	if infoOfImageFile.Size() > sizeLimitMegaBytes*1024*1024 {
+		PanicClientError("We are sorry, but this image exceeds the maximum upload size of %d MB", sizeLimitMegaBytes)
+	}
 
 	imageObj, err := jpeg.Decode(imageFile)
 
@@ -105,13 +116,6 @@ func ResizeImageFile(sourceFilePath, destinationFilePath string, maxWidth uint) 
 			localPanicIfHasError(err)
 			return
 		}
-	}
-
-	infoOfImageFile, err := imageFile.Stat()
-	localPanicIfHasError(err)
-	const sizeLimitMegaBytes = 2
-	if infoOfImageFile.Size() > sizeLimitMegaBytes*1024*1024 {
-		panic(fmt.Sprintf("We are sorry, but this image exceeds the maximum upload size of %d MB", sizeLimitMegaBytes))
 	}
 
 	//No need to resize the image because it does not exceed max pixel count, so just copy it

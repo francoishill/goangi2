@@ -19,6 +19,7 @@ type BaseAppContext struct {
 	Logger                  ILogger
 	baseAppUrl_WithSlash    string
 	baseAppUrl_NoSlash      string
+	MaxUploadSizeMegaBytes  int64
 	MaxProfilePicWidth      uint
 	UploadDirectory         string
 	ProfilePicsDirectory    string
@@ -31,7 +32,7 @@ func (this *BaseAppContext) checkError(err error) {
 	}
 }
 
-func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string) *BaseAppContext {
+func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxUploadSizeMegaBytes int64, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string) *BaseAppContext {
 	baseAppUrlNoSlash := strings.TrimRight(baseAppUrl, "/")
 
 	if !DirectoryExists(uploadDir) {
@@ -50,6 +51,7 @@ func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxProfilePicWidth 
 		Logger:                  logger,
 		baseAppUrl_WithSlash:    baseAppUrlNoSlash + "/",
 		baseAppUrl_NoSlash:      baseAppUrlNoSlash,
+		MaxUploadSizeMegaBytes:  maxUploadSizeMegaBytes,
 		MaxProfilePicWidth:      maxProfilePicWidth,
 		UploadDirectory:         uploadDir,
 		ProfilePicsDirectory:    profilePicsDir,
@@ -107,13 +109,22 @@ func (this *BaseAppContext) UploadAndResizeImageToTempUploadDir(file multipart.F
 
 	resizedTempFilePathObj, err := ioutil.TempFile(filepath.Dir(originalTempFile), resizedFilenamePrefix)
 	this.checkError(err)
-	defer resizedTempFilePathObj.Close()
+	resizedTempFilePathObj.Close()
 
 	resizedTempFilePath, err := filepath.Abs(resizedTempFilePathObj.Name())
 	this.checkError(err)
 
-	imageUtils.ResizeImageFile(originalTempFile, resizedTempFilePath, maxImageWidth)
-	defer os.Remove(originalTempFile)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				//If something goes wrong inside Resize, we must delete the 0-byte created temp file `resizedTempFilePath`
+				os.Remove(resizedTempFilePath)
+				panic(r)
+			}
+		}()
+		alwaysRemoveSourceFile := true
+		imageUtils.ResizeImageFile(originalTempFile, resizedTempFilePath, this.MaxUploadSizeMegaBytes, maxImageWidth, alwaysRemoveSourceFile)
+	}()
 
 	return resizedTempFilePath
 }

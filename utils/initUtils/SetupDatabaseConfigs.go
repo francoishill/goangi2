@@ -69,7 +69,8 @@ func SetupServerConfigs_AndAppContext(configProvider IConfigContainer, logger IL
 	uploadedImagesDir := configProvider.DefaultString("file_paths::uploaded_images_dir", "uploaded_images")
 
 	//Context settings
+	maxUploadSizeMegaBytes := configProvider.DefaultInt64("other::max_upload_size_mega_bytes", 2)
 	maxProfilePicWidth := uint(configProvider.DefaultInt("other::max_profile_pic_width", 128))
-	DefaultBaseAppContext = CreateBaseAppContext(logger, baseAppUrl, maxProfilePicWidth, uploadDir, profilePicsDir, uploadedImagesDir)
+	DefaultBaseAppContext = CreateBaseAppContext(logger, baseAppUrl, maxUploadSizeMegaBytes, maxProfilePicWidth, uploadDir, profilePicsDir, uploadedImagesDir)
 	return DefaultBaseAppContext
 }
