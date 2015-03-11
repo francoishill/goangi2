@@ -97,6 +97,13 @@ func (this *BaseAppContext) ReadPermanentImageFileBytes(fileNameOnly string) []b
 	return fileBytes
 }
 
+func (this *BaseAppContext) ReadProfilePicFileBytes(userId int64) []byte {
+	fullFilePath := this.getProfilePicFileFullPath(userId)
+	fileBytes, err := ioutil.ReadFile(fullFilePath)
+	this.checkError(err)
+	return fileBytes
+}
+
 func (this *BaseAppContext) DeleteTempImageFile(fileNameOnly string) {
 	fullTempFilePath := this.getTempImageFileFullPath(fileNameOnly)
 	err := os.Remove(fullTempFilePath)
