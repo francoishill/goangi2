@@ -91,10 +91,16 @@ func (this *BaseAppContext) ReadTempImageFileBytes(fileNameOnly string) []byte {
 }
 
 func (this *BaseAppContext) ReadPermanentImageFileBytes(fileNameOnly string) []byte {
-	fullTempFilePath := this.getUploadedImagePermanentFullPath(fileNameOnly)
-	fileBytes, err := ioutil.ReadFile(fullTempFilePath)
+	fullFilePath := this.getUploadedImagePermanentFullPath(fileNameOnly)
+	fileBytes, err := ioutil.ReadFile(fullFilePath)
 	this.checkError(err)
 	return fileBytes
+}
+
+func (this *BaseAppContext) DeletePermanentImage(fileNameOnly string) {
+	fullFilePath := this.getUploadedImagePermanentFullPath(fileNameOnly)
+	err := os.Remove(fullFilePath)
+	this.checkError(err)
 }
 
 func (this *BaseAppContext) ReadProfilePicFileBytes(userId int64) []byte {
