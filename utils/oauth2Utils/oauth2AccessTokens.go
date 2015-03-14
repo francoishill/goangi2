@@ -60,6 +60,10 @@ func OverwriteOsinResponseErrorWithOwn_SpecifyErrorKey(osinResponse *osin.Respon
 	osinResponse.SetError(errorKey, errorMapKeys[errorKey])
 }
 
+func PanicInvalidAuthData() {
+	panic(createOsinAuthorizeError(E_INVALID_AUTH_DATA, errorMapKeys[E_INVALID_AUTH_DATA]))
+}
+
 func GetAuthorizedContextFromAccessToken(osinResponse *osin.Response, ctx *context.Context) *AuthorizedContext {
 	InjectCodeIntoFormIfWasPassedViaAuthorizationHeader(ctx.Request)
 
@@ -68,7 +72,7 @@ func GetAuthorizedContextFromAccessToken(osinResponse *osin.Response, ctx *conte
 
 	ir := OsinServerObject.HandleInfoRequest(osinResponse, ctx.Request)
 	if ir == nil {
-		panic(createOsinAuthorizeError(E_INVALID_AUTH_DATA, errorMapKeys[E_INVALID_AUTH_DATA]))
+		PanicInvalidAuthData()
 	}
 
 	if ir.AccessData.UserData == nil {

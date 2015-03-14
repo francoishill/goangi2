@@ -42,6 +42,10 @@ func (this *BaseAuthorizedController) Finish() {
 	}
 }
 
+func (this *BaseAuthorizedController) BaseAuthorizedController_PanicInvalidAuthData() {
+	PanicInvalidAuthData()
+}
+
 func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
 	defer this.BaseController.RecoverPanicAndServeError() //BaseController to catch the non-osin errors
 
@@ -52,6 +56,7 @@ func (this *BaseAuthorizedController) RecoverPanicAndServeError() {
 
 			if strings.EqualFold(e.ErrorCode, E_INVALID_AUTH_DATA) {
 				DeleteAccessTokenCookies(this.Controller.Ctx)
+				ClearUserCookies(this.Controller.Ctx)
 			}
 			this.OsinResponse.ErrorStatusCode = 401
 			this.OsinResponse.SetError(e.ErrorCode, e.ErrorString)
@@ -73,6 +78,7 @@ func (this *BaseAuthorizedController) RecoverPanicAndServeError_InControllerPrep
 			this.Controller.Ctx.Output.EnableGzip = false
 			if strings.EqualFold(e.ErrorCode, E_INVALID_AUTH_DATA) {
 				DeleteAccessTokenCookies(this.Controller.Ctx)
+				ClearUserCookies(this.Controller.Ctx)
 			}
 			this.OsinResponse.ErrorStatusCode = 401
 			this.OsinResponse.SetError(e.ErrorCode, e.ErrorString)

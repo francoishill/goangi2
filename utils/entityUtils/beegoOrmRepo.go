@@ -17,8 +17,19 @@ func checkError(err error) {
 	}
 }
 
+func (this *beegoOrmRepo) CheckEntityExistsWithPK(ormContext *OrmContext, entityObj interface{}) bool {
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+	err := ormContextToUse.OrmWrapper.OrmInstance.Read(entityObj)
+	if this.BaseErrorIsZeroRowsFound(err) {
+		return false
+	}
+	checkError(err)
+	return true
+}
+
 func (this *beegoOrmRepo) BaseReadEntityUsingPK(ormContext *OrmContext, entityObj interface{}, relatedFieldsToLoad *RelatedFieldsToLoad) {
-	err := getNewBeegoOrm().Read(entityObj)
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+	err := ormContextToUse.OrmWrapper.OrmInstance.Read(entityObj)
 	checkError(err)
 
 	if relatedFieldsToLoad != nil {
@@ -30,7 +41,8 @@ func (this *beegoOrmRepo) BaseReadEntityUsingPK(ormContext *OrmContext, entityOb
 }
 
 func (this *beegoOrmRepo) BaseReadEntityUsingFields(ormContext *OrmContext, entityObj interface{}, relatedFieldsToLoad *RelatedFieldsToLoad, fields ...string) (success bool) {
-	err := getNewBeegoOrm().Read(entityObj, fields...)
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+	err := ormContextToUse.OrmWrapper.OrmInstance.Read(entityObj, fields...)
 	if this.BaseErrorIsZeroRowsFound(err) {
 		return false
 	}
@@ -315,7 +327,8 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 	relatedFieldsToLoad *RelatedFieldsToLoad,
 	sliceToPopulatePointer interface{}) {
 
-	qs := getNewBeegoOrm().QueryTable(queryTableName)
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+	qs := ormContextToUse.OrmWrapper.OrmInstance.QueryTable(queryTableName)
 	if limit > 0 && offset > 0 {
 		qs = qs.Limit(limit, offset)
 	} else if limit > 0 {
@@ -392,7 +405,8 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 }
 
 func (this *beegoOrmRepo) BaseCountEntities_ANDFilters(ormContext *OrmContext, queryTableName string, fieldFilters []map[string]interface{}) int64 {
-	qs := getNewBeegoOrm().QueryTable(queryTableName)
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+	qs := ormContextToUse.OrmWrapper.OrmInstance.QueryTable(queryTableName)
 
 	if fieldFilters != nil && len(fieldFilters) > 0 {
 		//Each element of the array of fieldFilters can contain a list of OR filters on a field
@@ -423,14 +437,10 @@ func (this *beegoOrmRepo) BaseCountEntities_ANDFilters(ormContext *OrmContext, q
 func (this *beegoOrmRepo) BaseLoadRelatedFields(ormContext *OrmContext, m interface{}, fieldName string) int64 {
 	var numLoaded int64
 	var err error
-	var ormInstance orm.Ormer = nil
-	if ormContext != nil {
-		ormInstance = ormContext.OrmWrapper.OrmInstance
-	} else {
-		ormInstance = getNewBeegoOrm()
-	}
 
-	numLoaded, err = ormInstance.LoadRelated(m, fieldName)
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+
+	numLoaded, err = ormContextToUse.OrmWrapper.OrmInstance.LoadRelated(m, fieldName)
 	if err != nil {
 		//If the error is No Rows Found it means probably that we are trying to get a FK relationship where the field is NULL
 		if err != orm.ErrNoRows {

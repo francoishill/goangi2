@@ -1,6 +1,8 @@
 package entityUtils
 
 type iOrmRepo interface {
+	CheckEntityExistsWithPK(ormContext *OrmContext, entityObj interface{}) bool
+
 	BaseReadEntityUsingPK(ormContext *OrmContext, entityObj interface{}, relatedFieldsToLoad *RelatedFieldsToLoad)
 
 	BaseReadEntityUsingFields(ormContext *OrmContext, entityObj interface{}, relatedFieldsToLoad *RelatedFieldsToLoad, fields ...string) bool
