@@ -9,6 +9,8 @@ import (
 	. "github.com/francoishill/goangi2/utils/loggingUtils"
 )
 
+var DefaultEmailContext *EmailContext
+
 func CreateEmailContext(logger ILogger, authUsername, authPassword, mailHostAndPort string, queueSendingIntervalMinutes int, doNotReplyFrom, adminRecipient, supportRecipient *EmailRecipient) *EmailContext {
 	return &EmailContext{
 		Logger:                      logger,

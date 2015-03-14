@@ -10,7 +10,7 @@ import (
 	. "github.com/francoishill/goangi2/utils/bufferUtils"
 )
 
-func CreateEmailMessage(sendDueTime time.Time, to []*EmailRecipient, from *EmailRecipient, subject, body string, msgType emailMessageType, debugInfo string, attachments ...*EmailAttachment) *EmailMessage {
+func CreateEmailMessage(sendDueTime time.Time, to []*EmailRecipient, from *EmailRecipient, subject, body string, msgType IEmailMessageType, debugInfo string, attachments ...*EmailAttachment) *EmailMessage {
 	if len(to) == 0 {
 		panic(fmt.Errorf("Please specify at least ONE To address"))
 	}
@@ -32,7 +32,7 @@ type EmailMessage struct {
 	From        *EmailRecipient
 	Subject     string
 	Body        string
-	Type        emailMessageType
+	Type        IEmailMessageType
 	Attachments []*EmailAttachment
 	SendDueTime time.Time
 	DebugInfo   string

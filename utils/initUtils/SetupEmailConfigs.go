@@ -24,8 +24,8 @@ func SetupEmailConfigs(configProvider IConfigContainer, logger ILogger) *EmailCo
 		configProvider.MustString("email_recipients::support__email"),
 	)
 
-	emailContext := CreateEmailContext(logger, authUsername, authPassword, mailHostAndPort, queueSendingIntervalMinutes, doNotReplyFrom, adminRecipient, supportRecipient)
-	go StartContinualEmailQueueSender(emailContext)
+	DefaultEmailContext = CreateEmailContext(logger, authUsername, authPassword, mailHostAndPort, queueSendingIntervalMinutes, doNotReplyFrom, adminRecipient, supportRecipient)
+	go StartContinualEmailQueueSender(DefaultEmailContext)
 
-	return emailContext
+	return DefaultEmailContext
 }

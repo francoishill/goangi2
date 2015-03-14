@@ -16,6 +16,7 @@ import (
 var DefaultBaseAppContext *BaseAppContext
 
 type BaseAppContext struct {
+	AppName                 string
 	Logger                  ILogger
 	baseAppUrl_WithSlash    string
 	baseAppUrl_NoSlash      string
@@ -24,6 +25,7 @@ type BaseAppContext struct {
 	UploadDirectory         string
 	ProfilePicsDirectory    string
 	UploadedImagesDirectory string
+	CopyRightUrl            string
 }
 
 func (this *BaseAppContext) checkError(err error) {
@@ -32,7 +34,7 @@ func (this *BaseAppContext) checkError(err error) {
 	}
 }
 
-func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxUploadSizeMegaBytes int64, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string) *BaseAppContext {
+func CreateBaseAppContext(appName string, logger ILogger, baseAppUrl string, maxUploadSizeMegaBytes int64, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string, copyrightRelativeUrl string) *BaseAppContext {
 	baseAppUrlNoSlash := strings.TrimRight(baseAppUrl, "/")
 
 	if !DirectoryExists(uploadDir) {
@@ -47,7 +49,8 @@ func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxUploadSizeMegaBy
 		panic("Upload images directory does not exist: " + uploadedImagesDir)
 	}
 
-	return &BaseAppContext{
+	context := &BaseAppContext{
+		AppName:                 appName,
 		Logger:                  logger,
 		baseAppUrl_WithSlash:    baseAppUrlNoSlash + "/",
 		baseAppUrl_NoSlash:      baseAppUrlNoSlash,
@@ -57,9 +60,11 @@ func CreateBaseAppContext(logger ILogger, baseAppUrl string, maxUploadSizeMegaBy
 		ProfilePicsDirectory:    profilePicsDir,
 		UploadedImagesDirectory: uploadedImagesDir,
 	}
+	context.CopyRightUrl = context.GenerateUrlFromRelativeUrl(copyrightRelativeUrl)
+	return context
 }
 
-func (this *BaseAppContext) GenerateAppRelativeUrl(partAfterBaseUrl string) string {
+func (this *BaseAppContext) GenerateUrlFromRelativeUrl(partAfterBaseUrl string) string {
 	if partAfterBaseUrl == "" {
 		return this.baseAppUrl_NoSlash
 	}

@@ -1,14 +1,14 @@
 package emailUtils
 
-var HtmlEmailMessageType emailMessageType = &htmlEmailMessageType{}
-var TextEmailMessageType emailMessageType = &textEmailMessageType{}
+var HtmlEmailMessageType IEmailMessageType = &htmlEmailMessageType{}
+var TextEmailMessageType IEmailMessageType = &textEmailMessageType{}
 
 type EmailMessageTypeVisitor interface {
 	visitTextEmailMessageType(visitor *textEmailMessageType)
 	visitHtmlEmailMessageType(visitor *htmlEmailMessageType)
 }
 
-type emailMessageType interface {
+type IEmailMessageType interface {
 	Accept(EmailMessageTypeVisitor)
 }
 
