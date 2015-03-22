@@ -5,6 +5,8 @@ import (
 )
 
 type iEmailView interface {
+	GetBaseViewData() interface{}
+	GetBaseViewDataName() string
 	GetViewDataName() string
 	GetEmailTemplatePath() string
 }
@@ -21,12 +23,13 @@ func EnqueueEmail(
 	debugInfo string,
 	attachments ...*EmailAttachment) {
 
-	if viewData.GetViewDataName() == "" {
-		panic("'ViewDataName' must be non-empty")
+	if viewData.GetViewDataName() == "" || viewData.GetBaseViewDataName() == "" {
+		panic("Both 'ViewDataName' and 'BaseViewDataName' must be non-empty")
 	}
 
 	templatePath := viewData.GetEmailTemplatePath()
 	emailDataObject := make(map[interface{}]interface{})
+	emailDataObject[viewData.GetBaseViewDataName()] = viewData.GetBaseViewData()
 	emailDataObject[viewData.GetViewDataName()] = viewData
 	emailBody := RenderGoangi2Email(templatePath, emailDataObject)
 
