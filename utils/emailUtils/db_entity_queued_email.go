@@ -78,19 +78,28 @@ func (this *QueuedEmail) Update_SetSendError(ormContext *OrmContext, errorString
 	OrmRepo.BaseDeleteEntity(ormContext, this)
 }*/
 
-func (this *QueuedEmail) List_UnsentAndDue(ormContext *OrmContext, loadRelatedSettings *RelatedFieldsToLoad, orderByFields ...string) []*QueuedEmail {
-	fieldFilters := []map[string]interface{}{
+func (this *QueuedEmail) getUnsentAndDueFieldFilters() []map[string]interface{} {
+	return []map[string]interface{}{
 		map[string]interface{}{
 			MAIL_QUEUE__COLUMN__SUCCESSFULLY_SENT_ON + "__isnull": true,
 		},
 		map[string]interface{}{
-			MAIL_QUEUE__COLUMN__SEND_DUE_TIME + "__lte": time.Now(),
+			MAIL_QUEUE__COLUMN__SEND_DUE_TIME + "__lte": time.Now().Add(2 * time.Second), /*Just a grace of 2 seconds*/
 		},
 	}
+}
+
+func (this *QueuedEmail) List_UnsentAndDue(ormContext *OrmContext, loadRelatedSettings *RelatedFieldsToLoad, orderByFields ...string) []*QueuedEmail {
+	fieldFilters := this.getUnsentAndDueFieldFilters()
 
 	list := []*QueuedEmail{}
 	OrmRepo.BaseListEntities_ANDFilters_OrderBy(ormContext, MAIL_QUEUE__TABLE_NAME, fieldFilters, orderByFields, loadRelatedSettings, &list)
 	return list
+}
+
+func (this *QueuedEmail) Count_UnsentAndDue(ormContext *OrmContext) int64 {
+	fieldFilters := this.getUnsentAndDueFieldFilters()
+	return OrmRepo.BaseCountEntities_ANDFilters(ormContext, MAIL_QUEUE__TABLE_NAME, fieldFilters)
 }
 
 func (this *QueuedEmail) GetSplittedRecipientEmailAddresses() []string {

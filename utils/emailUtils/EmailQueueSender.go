@@ -115,3 +115,13 @@ func StartContinualEmailQueueSender(emailContext *EmailContext) {
 		}
 	}
 }
+
+func FlushEmailQueueSynchronously() {
+	for {
+		unsentCount := (&QueuedEmail{}).Count_UnsentAndDue(nil)
+		if unsentCount == 0 {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
