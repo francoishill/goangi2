@@ -10,6 +10,7 @@ import (
 	. "github.com/francoishill/goangi2/context"
 	. "github.com/francoishill/goangi2/utils/configUtils"
 	. "github.com/francoishill/goangi2/utils/cookieUtils"
+	. "github.com/francoishill/goangi2/utils/emailUtils"
 	. "github.com/francoishill/goangi2/utils/loggingUtils"
 )
 
@@ -74,8 +75,12 @@ func SetupServerConfigs_AndAppContext(configProvider IConfigContainer, logger IL
 	maxUploadSizeMegaBytes := configProvider.DefaultInt64("other::max_upload_size_mega_bytes", 2)
 	maxProfilePicWidth := uint(configProvider.DefaultInt("other::max_profile_pic_width", 128))
 
-	copyrightRelativeUrl := "/copyright"
+	copyrightLink := CreateEmailLink("", "Copyright", "", GenerateUrlFromRelativeUrl(baseAppUrl, "/copyright"), "_blank", "color:#888;text-decoration:none;")
 
-	DefaultBaseAppContext = CreateBaseAppContext(appName, logger, baseAppUrl, maxUploadSizeMegaBytes, maxProfilePicWidth, uploadDir, profilePicsDir, uploadedImagesDir, copyrightRelativeUrl)
+	DefaultBaseAppContext = CreateBaseAppContext(
+		appName, logger, baseAppUrl,
+		maxUploadSizeMegaBytes, maxProfilePicWidth,
+		uploadDir, profilePicsDir, uploadedImagesDir,
+		copyrightLink)
 	return DefaultBaseAppContext
 }

@@ -25,7 +25,7 @@ type BaseAppContext struct {
 	UploadDirectory         string
 	ProfilePicsDirectory    string
 	UploadedImagesDirectory string
-	CopyRightUrl            string
+	CopyRightLink           IBaseAppContextEmailLink
 }
 
 func (this *BaseAppContext) checkError(err error) {
@@ -34,7 +34,21 @@ func (this *BaseAppContext) checkError(err error) {
 	}
 }
 
-func CreateBaseAppContext(appName string, logger ILogger, baseAppUrl string, maxUploadSizeMegaBytes int64, maxProfilePicWidth uint, uploadDir, profilePicsDir, uploadedImagesDir string, copyrightRelativeUrl string) *BaseAppContext {
+type IBaseAppContextEmailLink interface {
+	GetBeforeLinkText() string
+	GetLinkText() string
+	GetAfterLinkText() string
+	GetHref() string
+	GetTargetAttribute() string
+	GetStyleAttributeContent() string
+}
+
+func CreateBaseAppContext(
+	appName string, logger ILogger, baseAppUrl string,
+	maxUploadSizeMegaBytes int64, maxProfilePicWidth uint,
+	uploadDir, profilePicsDir, uploadedImagesDir string,
+	copyRightLink IBaseAppContextEmailLink) *BaseAppContext {
+
 	baseAppUrlNoSlash := strings.TrimRight(baseAppUrl, "/")
 
 	if !DirectoryExists(uploadDir) {
@@ -49,7 +63,7 @@ func CreateBaseAppContext(appName string, logger ILogger, baseAppUrl string, max
 		panic("Upload images directory does not exist: " + uploadedImagesDir)
 	}
 
-	context := &BaseAppContext{
+	return &BaseAppContext{
 		AppName:                 appName,
 		Logger:                  logger,
 		baseAppUrl_WithSlash:    baseAppUrlNoSlash + "/",
@@ -59,21 +73,26 @@ func CreateBaseAppContext(appName string, logger ILogger, baseAppUrl string, max
 		UploadDirectory:         uploadDir,
 		ProfilePicsDirectory:    profilePicsDir,
 		UploadedImagesDirectory: uploadedImagesDir,
+		CopyRightLink:           copyRightLink,
 	}
-	context.CopyRightUrl = context.GenerateUrlFromRelativeUrl(copyrightRelativeUrl)
-	return context
 }
 
-func (this *BaseAppContext) GenerateUrlFromRelativeUrl(partAfterBaseUrl string) string {
+func GenerateUrlFromRelativeUrl(baseAppUrl string, partAfterBaseUrl string) string {
+	baseAppUrlNoSlash := strings.TrimRight(baseAppUrl, "/")
+
 	if partAfterBaseUrl == "" {
-		return this.baseAppUrl_NoSlash
+		return baseAppUrlNoSlash
 	}
 
 	if partAfterBaseUrl[0] == '/' {
-		return this.baseAppUrl_NoSlash + partAfterBaseUrl
+		return baseAppUrlNoSlash + partAfterBaseUrl
 	} else {
-		return this.baseAppUrl_WithSlash + partAfterBaseUrl
+		return baseAppUrlNoSlash + "/" + partAfterBaseUrl
 	}
+}
+
+func (this *BaseAppContext) GenerateUrlFromRelativeUrl(partAfterBaseUrl string) string {
+	return GenerateUrlFromRelativeUrl(this.baseAppUrl_NoSlash, partAfterBaseUrl)
 }
 
 func (this *BaseAppContext) getTempImageFileFullPath(fileNameOnly string) string {
