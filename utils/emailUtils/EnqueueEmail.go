@@ -36,3 +36,15 @@ func EnqueueEmail(
 	emailMsg := CreateEmailMessage(sendDueTime, to, from, subject, emailBody, msgType, debugInfo, attachments...)
 	emailMsg.Enqueue(emailContext, scheduleSendMailNow)
 }
+
+func EnqueueEmail_AndSendNow(
+	viewData iEmailView,
+	emailContext *EmailContext,
+	to []*EmailRecipient,
+	from *EmailRecipient,
+	subject string,
+	msgType IEmailMessageType,
+	debugInfo string,
+	attachments ...*EmailAttachment) {
+	EnqueueEmail(viewData, emailContext, true, time.Now(), to, from, subject, msgType, debugInfo, attachments...)
+}
