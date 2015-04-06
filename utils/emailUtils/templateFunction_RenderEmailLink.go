@@ -12,7 +12,7 @@ func renderEmailLink(link *EmailLink) template.HTML {
 	}
 
 	html := fmt.Sprintf(
-		`<span>%s</span> <a style="%s" target="%s" href="%s">%s</a> <span>%s</span>`,
+		`<span>%s</span><a style="%s" target="%s" href="%s">%s</a><span>%s</span>`,
 		link.BeforeLinkText, link.StyleAttributeContent, link.TargetAttribute, link.Href, link.LinkText, link.AfterLinkText)
 
 	return template.HTML(html)
