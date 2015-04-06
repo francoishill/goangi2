@@ -41,19 +41,19 @@ func TestGetTranslationWithParams(t *testing.T) {
 				"age":        "25",
 			}
 
-			val2 := provider.GetTranslationWithParams("KEY_OUTER_2.KEY_INNER_2.KEY2", params)
+			val2 := provider.GetTranslation("KEY_OUTER_2.KEY_INNER_2.KEY2", params)
 			So(val2, ShouldEqual, "My value 2 with My Full Name and I am 25 years old of age")
 
-			val1 := provider.GetTranslation("KEY_OUTER_1.KEY_INNER_1.KEY1")
+			val1 := provider.GetTranslation("KEY_OUTER_1.KEY_INNER_1.KEY1", nil)
 			So(val1, ShouldEqual, "My value 1")
 
-			val3 := provider.GetTranslation("KEY_OUTER_3.KEY_INNER_3.KEY3")
+			val3 := provider.GetTranslation("KEY_OUTER_3.KEY_INNER_3.KEY3", nil)
 			So(val3, ShouldEqual, "My value 3")
 
-			valInvalid := provider.GetTranslation("KEY.INVALID")
+			valInvalid := provider.GetTranslation("KEY.INVALID", nil)
 			So(valInvalid, ShouldEqual, "KEY.INVALID{}")
 
-			valInvalid = provider.GetTranslationWithParams("KEY.INVALID", map[string]string{"ParamKey1": "ParamValue1", "PK2": "PV2"})
+			valInvalid = provider.GetTranslation("KEY.INVALID", map[string]string{"ParamKey1": "ParamValue1", "PK2": "PV2"})
 			So(valInvalid, ShouldEqual, `KEY.INVALID{"ParamKey1":"ParamValue1", "PK2":"PV2"}`)
 		})
 	})
