@@ -54,7 +54,7 @@ type iOrmRepo interface {
 	BaseListEntities_ANDFilters_OrderBy(
 		ormContext *OrmContext,
 		queryTableName string,
-		fieldFilters []map[string]interface{}, //Map of FieldName + FieldValue
+		queryFilter *QueryFilter, //Map of FieldName + FieldValue
 		orderByFields []string,
 		relatedFieldsToLoad *RelatedFieldsToLoad,
 		sliceToPopulatePointer interface{})
@@ -62,7 +62,7 @@ type iOrmRepo interface {
 	BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 		ormContext *OrmContext,
 		queryTableName string,
-		fieldFilters []map[string]interface{}, //Map of FieldName + FieldValue
+		queryFilter *QueryFilter, //Map of FieldName + FieldValue
 		orderByFields []string,
 		limit int64,
 		offset int64,
@@ -72,7 +72,7 @@ type iOrmRepo interface {
 	BaseCountEntities_ANDFilters(
 		ormContext *OrmContext,
 		queryTableName string,
-		fieldFilters []map[string]interface{}) int64
+		queryFilter *QueryFilter) int64
 
 	BaseLoadRelatedFields(ormContext *OrmContext, m interface{}, fieldName string) int64
 

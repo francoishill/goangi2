@@ -17,6 +17,30 @@ func checkError(err error) {
 	}
 }
 
+func getQuerySetterFromQueryFilter(qs orm.QuerySeter, queryFilter *QueryFilter) orm.QuerySeter {
+	if queryFilter == nil || len(queryFilter.AndList) == 0 {
+		return qs
+	}
+	//Each element of the array of queryFilter can contain a list of OR filters on a field
+	cond := orm.NewCondition()
+	finalCondition := cond
+
+	for _, andContainer := range queryFilter.AndList {
+		tmpCond := cond
+		for _, orContainer := range andContainer.OrList {
+			if orContainer.IsNot {
+				tmpCond = tmpCond.OrNot(orContainer.Expression, orContainer.Arguments...)
+			} else {
+				tmpCond = tmpCond.Or(orContainer.Expression, orContainer.Arguments...)
+			}
+		}
+
+		finalCondition = finalCondition.AndCond(tmpCond)
+	}
+
+	return qs.SetCond(finalCondition)
+}
+
 func (this *beegoOrmRepo) CheckEntityExistsWithPK(ormContext *OrmContext, entityObj interface{}) bool {
 	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
 	err := ormContextToUse.OrmWrapper.OrmInstance.Read(entityObj)
@@ -306,7 +330,7 @@ func (this *beegoOrmRepo) BaseM2MRelationExists(
 func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy(
 	ormContext *OrmContext,
 	queryTableName string,
-	fieldFilters []map[string]interface{},
+	queryFilter *QueryFilter,
 	orderByFields []string,
 	relatedFieldsToLoad *RelatedFieldsToLoad,
 	sliceToPopulatePointer interface{}) {
@@ -314,13 +338,13 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy(
 	limit := int64(DEFAULT_QUERY_LIMIT)
 	offset := int64(0) //default offset always 0
 	this.BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
-		ormContext, queryTableName, fieldFilters, orderByFields, limit, offset, relatedFieldsToLoad, sliceToPopulatePointer)
+		ormContext, queryTableName, queryFilter, orderByFields, limit, offset, relatedFieldsToLoad, sliceToPopulatePointer)
 }
 
 func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 	ormContext *OrmContext,
 	queryTableName string,
-	fieldFilters []map[string]interface{},
+	queryFilter *QueryFilter,
 	orderByFields []string,
 	limit int64,
 	offset int64,
@@ -337,25 +361,7 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 		qs = qs.Offset(offset)
 	}
 
-	if fieldFilters != nil && len(fieldFilters) > 0 {
-		//Each element of the array of fieldFilters can contain a list of OR filters on a field
-		cond := orm.NewCondition()
-		andConditionList := []*orm.Condition{}
-		for ind, _ := range fieldFilters {
-			tmpCond := cond
-			for fieldName, fieldVal := range fieldFilters[ind] {
-				tmpCond = tmpCond.Or(fieldName, fieldVal)
-			}
-			andConditionList = append(andConditionList, tmpCond)
-		}
-
-		finalCondition := cond
-		for ind, _ := range andConditionList {
-			finalCondition = finalCondition.AndCond(andConditionList[ind])
-		}
-
-		qs = qs.SetCond(finalCondition)
-	}
+	qs = getQuerySetterFromQueryFilter(qs, queryFilter)
 
 	if relatedFieldsToLoad != nil {
 		fieldNames := relatedFieldsToLoad.GetFieldNames(true, false)
@@ -404,29 +410,11 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 	}
 }
 
-func (this *beegoOrmRepo) BaseCountEntities_ANDFilters(ormContext *OrmContext, queryTableName string, fieldFilters []map[string]interface{}) int64 {
+func (this *beegoOrmRepo) BaseCountEntities_ANDFilters(ormContext *OrmContext, queryTableName string, queryFilter *QueryFilter) int64 {
 	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
 	qs := ormContextToUse.OrmWrapper.OrmInstance.QueryTable(queryTableName)
 
-	if fieldFilters != nil && len(fieldFilters) > 0 {
-		//Each element of the array of fieldFilters can contain a list of OR filters on a field
-		cond := orm.NewCondition()
-		andConditionList := []*orm.Condition{}
-		for ind, _ := range fieldFilters {
-			tmpCond := cond
-			for fieldName, fieldVal := range fieldFilters[ind] {
-				tmpCond = tmpCond.Or(fieldName, fieldVal)
-			}
-			andConditionList = append(andConditionList, tmpCond)
-		}
-
-		finalCondition := cond
-		for ind, _ := range andConditionList {
-			finalCondition = finalCondition.AndCond(andConditionList[ind])
-		}
-
-		qs = qs.SetCond(finalCondition)
-	}
+	qs = getQuerySetterFromQueryFilter(qs, queryFilter)
 
 	cnt, err := qs.Count()
 	checkError(err)

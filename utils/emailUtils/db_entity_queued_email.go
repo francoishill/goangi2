@@ -78,15 +78,15 @@ func (this *QueuedEmail) Update_SetSendError(ormContext *OrmContext, errorString
 	OrmRepo.BaseDeleteEntity(ormContext, this)
 }*/
 
-func (this *QueuedEmail) getUnsentAndDueFieldFilters() []map[string]interface{} {
-	return []map[string]interface{}{
-		map[string]interface{}{
-			MAIL_QUEUE__COLUMN__SUCCESSFULLY_SENT_ON + "__isnull": true,
-		},
-		map[string]interface{}{
-			MAIL_QUEUE__COLUMN__SEND_DUE_TIME + "__lte": time.Now().Add(2 * time.Second), /*Just a grace of 2 seconds*/
-		},
-	}
+func (this *QueuedEmail) getUnsentAndDueFieldFilters() *QueryFilter {
+	return QueryFilter__Constructor([]*AndQueryFilterContainer{
+		AndQueryFilterContainer__Constructor([]*OrQueryFilterContainer{
+			OrQueryFilterContainer__Constructor(false, MAIL_QUEUE__COLUMN__SUCCESSFULLY_SENT_ON+"__isnull", true),
+		}),
+		AndQueryFilterContainer__Constructor([]*OrQueryFilterContainer{
+			OrQueryFilterContainer__Constructor(false, MAIL_QUEUE__COLUMN__SEND_DUE_TIME+"__lte", time.Now().Add(2*time.Second)),
+		}),
+	})
 }
 
 func (this *QueuedEmail) List_UnsentAndDue(ormContext *OrmContext, loadRelatedSettings *RelatedFieldsToLoad, orderByFields ...string) []*QueuedEmail {
