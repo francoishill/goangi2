@@ -54,7 +54,7 @@ func TestGetTranslationWithParams(t *testing.T) {
 			So(valInvalid, ShouldEqual, "KEY.INVALID{}")
 
 			valInvalid = provider.GetTranslation("KEY.INVALID", map[string]string{"ParamKey1": "ParamValue1", "PK2": "PV2"})
-			So(valInvalid, ShouldEqual, `KEY.INVALID{"ParamKey1":"ParamValue1", "PK2":"PV2"}`)
+			So(valInvalid == `KEY.INVALID{"ParamKey1":"ParamValue1", "PK2":"PV2"}` || valInvalid == `KEY.INVALID{"PK2":"PV2", "ParamKey1":"ParamValue1"}`, ShouldBeTrue)
 		})
 	})
 }
