@@ -36,9 +36,9 @@ func SetupEmailConfigs(configProvider IConfigContainer, logger ILogger) *EmailCo
 		go StartContinualEmailQueueSender(DefaultEmailContext)
 		break
 	case "sendgrid":
-		sendgridApiUser := configProvider.MustString("email::sendgrid_api_user")
-		sendgridApiKey := configProvider.MustString("email::sendgrid_api_key")
-		sendgridTemplateId := configProvider.DefaultString("email::sendgrid_template_id", "")
+		sendgridApiUser := configProvider.MustString("sendgrid::api_user")
+		sendgridApiKey := configProvider.MustString("sendgrid::api_key")
+		sendgridTemplateId := configProvider.DefaultString("sendgrid::template_id", "")
 		DefaultEmailContext = CreateEmailContext_SendGridProvider(logger, sendgridApiUser, sendgridApiKey, sendgridTemplateId, doNotReplyFrom, adminRecipient, supportRecipient)
 		break
 	default:

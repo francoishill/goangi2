@@ -112,3 +112,7 @@ func (this *EmailContext) GetDoNotReplyFrom() *EmailRecipient {
 func (this *EmailContext) GetQueueSendingInterval() time.Duration {
 	return time.Minute * time.Duration(this.queueSendingIntervalMinutes)
 }
+
+func (this *EmailContext) IsSendGridEmailProvider() bool {
+	return this.emailProviderType == EMAIL_PROVIDER_TYPE__SENDGRID
+}

@@ -12,7 +12,7 @@ func (this *EmailMessage) enqueue_UsingDefault(emailContext *EmailContext, sched
 	}
 }
 
-func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, scheduleSendMailNow bool) {
+func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, scheduleSendMailNow bool, sendGridAdvancedSuppressionManagerGroup int) {
 	sendgridClient := sendgrid.NewSendGridClient(emailContext.sendgridApiUser, emailContext.sendgridApiKey)
 
 	message := sendgrid.NewMail()
@@ -38,6 +38,10 @@ func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, sche
 	}
 
 	message.SetSendAt(this.SendDueTime.Unix())
+
+	if sendGridAdvancedSuppressionManagerGroup > 0 {
+		message.SetASMGroupID(sendGridAdvancedSuppressionManagerGroup)
+	}
 
 	//We handle the 'building' of the sendgrid message synchronously (not on a go routine), but the actual sending we handle on a go subroutine
 	go func() {

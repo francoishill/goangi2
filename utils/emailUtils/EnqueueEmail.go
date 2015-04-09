@@ -12,6 +12,7 @@ type iEmailView interface {
 }
 
 func EnqueueEmail(
+	sendGridAdvancedSuppressionManagerGroup int, //Need to find a more generic way to handle it so we do not need to pass it in for non-sendgrid email providers
 	viewData iEmailView,
 	emailContext *EmailContext,
 	scheduleSendMailNow bool,
@@ -34,10 +35,11 @@ func EnqueueEmail(
 	emailBody := RenderGoangi2Email(templatePath, emailDataObject)
 
 	emailMsg := CreateEmailMessage(sendDueTime, to, from, subject, emailBody, msgType, debugInfo, attachments...)
-	emailMsg.Enqueue(emailContext, scheduleSendMailNow)
+	emailMsg.Enqueue(emailContext, scheduleSendMailNow, sendGridAdvancedSuppressionManagerGroup)
 }
 
 func EnqueueEmail_AndSendNow(
+	sendGridAdvancedSuppressionManagerGroup int,
 	viewData iEmailView,
 	emailContext *EmailContext,
 	to []*EmailRecipient,
@@ -46,5 +48,5 @@ func EnqueueEmail_AndSendNow(
 	msgType IEmailMessageType,
 	debugInfo string,
 	attachments ...*EmailAttachment) {
-	EnqueueEmail(viewData, emailContext, true, time.Now(), to, from, subject, msgType, debugInfo, attachments...)
+	EnqueueEmail(sendGridAdvancedSuppressionManagerGroup, viewData, emailContext, true, time.Now(), to, from, subject, msgType, debugInfo, attachments...)
 }

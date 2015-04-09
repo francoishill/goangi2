@@ -114,13 +114,13 @@ func (this *EmailMessage) GetContent() string {
 	return buf.GetString()
 }
 
-func (this *EmailMessage) Enqueue(emailContext *EmailContext, scheduleSendMailNow bool) {
+func (this *EmailMessage) Enqueue(emailContext *EmailContext, scheduleSendMailNow bool, sendGridAdvancedSuppressionManagerGroup int) {
 	switch emailContext.emailProviderType {
 	case EMAIL_PROVIDER_TYPE__DEFAULT:
 		this.enqueue_UsingDefault(emailContext, scheduleSendMailNow)
 		break
 	case EMAIL_PROVIDER_TYPE__SENDGRID:
-		this.enqueue_UsingSendGrid(emailContext, scheduleSendMailNow)
+		this.enqueue_UsingSendGrid(emailContext, scheduleSendMailNow, sendGridAdvancedSuppressionManagerGroup)
 		break
 	default:
 		panic(fmt.Sprintf("Cannot enqueue email, unsupported email provider type %d", emailContext.emailProviderType))
