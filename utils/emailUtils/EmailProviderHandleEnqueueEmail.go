@@ -1,7 +1,7 @@
 package emailUtils
 
 import (
-	"github.com/francoishill/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go"
 )
 
 func (this *EmailMessage) enqueue_UsingDefault(emailContext *EmailContext, scheduleSendMailNow bool) {
@@ -37,7 +37,7 @@ func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, sche
 		message.AddFilter("templates", "template_id", emailContext.sendgridTemplateId)
 	}
 
-	message.SetSendAtTime(this.SendDueTime)
+	message.SetSendAt(this.SendDueTime.Unix())
 
 	//We handle the 'building' of the sendgrid message synchronously (not on a go routine), but the actual sending we handle on a go subroutine
 	go func() {
