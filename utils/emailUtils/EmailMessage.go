@@ -115,9 +115,15 @@ func (this *EmailMessage) GetContent() string {
 }
 
 func (this *EmailMessage) Enqueue(emailContext *EmailContext, scheduleSendMailNow bool) {
-	queuedEmail := CreateQueuedEmail_FromEmailMessage(this)
-	queuedEmail.Insert(nil)
-	if scheduleSendMailNow {
-		ScheduleSendMailNow()
+	switch emailContext.emailProviderType {
+	case EMAIL_PROVIDER_TYPE__DEFAULT:
+		this.enqueue_UsingDefault(emailContext, scheduleSendMailNow)
+		break
+	case EMAIL_PROVIDER_TYPE__SENDGRID:
+		this.enqueue_UsingSendGrid(emailContext, scheduleSendMailNow)
+		break
+	default:
+		panic(fmt.Sprintf("Cannot enqueue email, unsupported email provider type %d", emailContext.emailProviderType))
+		break
 	}
 }

@@ -116,5 +116,6 @@ func (u *QueuedEmail) TableIndex() [][]string {
 func (u *QueuedEmail) TableUnique() [][]string { return [][]string{} }
 
 func init() {
+	//TODO: It would ultimately be nice if we could get rid of this table being created if we use SendGrid as an email SMTP sending provider
 	DefaultRegisterModel(new(QueuedEmail))
 }

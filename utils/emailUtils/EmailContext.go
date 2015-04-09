@@ -9,11 +9,17 @@ import (
 	. "github.com/francoishill/goangi2/utils/loggingUtils"
 )
 
+const (
+	EMAIL_PROVIDER_TYPE__DEFAULT  = 1 << iota
+	EMAIL_PROVIDER_TYPE__SENDGRID = 1 << iota
+)
+
 var DefaultEmailContext *EmailContext
 
-func CreateEmailContext(logger ILogger, authUsername, authPassword, mailHostAndPort string, queueSendingIntervalMinutes int, doNotReplyFrom, adminRecipient, supportRecipient *EmailRecipient) *EmailContext {
+func CreateEmailContext_DefaultEmailProvider(logger ILogger, authUsername, authPassword, mailHostAndPort string, queueSendingIntervalMinutes int, doNotReplyFrom, adminRecipient, supportRecipient *EmailRecipient) *EmailContext {
 	return &EmailContext{
 		Logger:                      logger,
+		emailProviderType:           EMAIL_PROVIDER_TYPE__DEFAULT,
 		doNotReplyFrom:              doNotReplyFrom,
 		adminRecipient:              adminRecipient,
 		supportRecipient:            supportRecipient,
@@ -21,18 +27,46 @@ func CreateEmailContext(logger ILogger, authUsername, authPassword, mailHostAndP
 		authPassword:                authPassword,
 		mailHostAndPort:             mailHostAndPort,
 		queueSendingIntervalMinutes: queueSendingIntervalMinutes,
+		sendgridApiUser:             "", //Not used for Default email provider
+		sendgridApiKey:              "", //Not used for Default email provider
+		sendgridTemplateId:          "", //Not used for Default email provider
+	}
+}
+
+func CreateEmailContext_SendGridProvider(logger ILogger, sendgridApiUser, sendgridApiKey, sendgridTemplateId string, doNotReplyFrom, adminRecipient, supportRecipient *EmailRecipient) *EmailContext {
+	return &EmailContext{
+		Logger:                      logger,
+		emailProviderType:           EMAIL_PROVIDER_TYPE__SENDGRID,
+		doNotReplyFrom:              doNotReplyFrom,
+		adminRecipient:              adminRecipient,
+		supportRecipient:            supportRecipient,
+		authUsername:                "", //Not used for SendGrid email provider
+		authPassword:                "", //Not used for SendGrid email provider
+		mailHostAndPort:             "", //Not used for SendGrid email provider
+		queueSendingIntervalMinutes: 0,  //Not used for SendGrid email provider
+		sendgridApiUser:             sendgridApiUser,
+		sendgridApiKey:              sendgridApiKey,
+		sendgridTemplateId:          sendgridTemplateId,
 	}
 }
 
 type EmailContext struct {
-	Logger                      ILogger
-	doNotReplyFrom              *EmailRecipient //A do-not-reply email which is used as the from email of system mail, like Register, Forgot Password, etc
-	adminRecipient              *EmailRecipient //Typically the person receiving general Errors and Notices
-	supportRecipient            *EmailRecipient //Typically the person responsible to respond to payment/transactions issues and failures
+	Logger ILogger
+
+	emailProviderType int
+
+	doNotReplyFrom   *EmailRecipient //A do-not-reply email which is used as the from email of system mail, like Register, Forgot Password, etc
+	adminRecipient   *EmailRecipient //Typically the person receiving general Errors and Notices
+	supportRecipient *EmailRecipient //Typically the person responsible to respond to payment/transactions issues and failures
+
 	authUsername                string
 	authPassword                string
 	mailHostAndPort             string
 	queueSendingIntervalMinutes int
+
+	sendgridApiUser    string
+	sendgridApiKey     string
+	sendgridTemplateId string
 }
 
 func (this *EmailContext) getSmtpPlainAuth() smtp.Auth {
