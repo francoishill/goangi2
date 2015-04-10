@@ -18,13 +18,14 @@ func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, sche
 	message := sendgrid.NewMail()
 	for _, to := range this.To {
 		if err := message.AddTo(to.EmailAddress); err != nil {
-			panic(err)
+			emailContext.Logger.Error("Unable to AddTo in sendgrid message, error: %s", err.Error())
+			continue //Just skip the current user
 		}
 		message.AddToName(to.FullName)
 	}
 
 	if err := message.SetFrom(this.From.EmailAddress); err != nil {
-		panic(err)
+		emailContext.Logger.Error("Unable to SetFrom in sendgrid message, error: %s", err.Error())
 	}
 
 	message.SetFromName(this.From.FullName)
@@ -46,7 +47,7 @@ func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, sche
 	//We handle the 'building' of the sendgrid message synchronously (not on a go routine), but the actual sending we handle on a go subroutine
 	go func() {
 		if err := sendgridClient.Send(message); err != nil {
-			panic(err)
+			emailContext.Logger.Error("Unable to send email using sendgrid, error: %s", err.Error())
 		}
 	}()
 }
