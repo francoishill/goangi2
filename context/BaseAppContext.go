@@ -107,6 +107,10 @@ func (this *BaseAppContext) getUploadedImagePermanentFullPath(imageFileName stri
 	return filepath.Join(this.UploadedImagesDirectory, fmt.Sprintf("%s", imageFileName))
 }
 
+func (this *BaseAppContext) GetUploadedImagePermanentFullPath(imageFileName string) string {
+	return this.getUploadedImagePermanentFullPath(imageFileName)
+}
+
 func (this *BaseAppContext) ReadTempImageFileBytes(fileNameOnly string) []byte {
 	fullTempFilePath := this.getTempImageFileFullPath(fileNameOnly)
 	if !FileExists(fullTempFilePath) {
