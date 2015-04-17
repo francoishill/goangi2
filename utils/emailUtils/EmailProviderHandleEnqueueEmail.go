@@ -46,8 +46,22 @@ func (this *EmailMessage) enqueue_UsingSendGrid(emailContext *EmailContext, sche
 
 	//We handle the 'building' of the sendgrid message synchronously (not on a go routine), but the actual sending we handle on a go subroutine
 	go func() {
-		if err := sendgridClient.Send(message); err != nil {
-			emailContext.Logger.Error("Unable to send email using sendgrid, error: %s", err.Error())
+		defer func() {
+			if r := recover(); r != nil {
+				emailContext.Logger.Error("UNEXPECTED error occurred in go routine to send SendGrid email, error: %+v", r)
+			}
+		}()
+
+		maxRetries := 5 //If the max retries is 5, we will actually attempt (6 times) 1x more because we RETRY 5 times after the first fail
+		currentRetries := 0
+		for currentRetries <= maxRetries {
+			currentRetries++
+
+			err := sendgridClient.Send(message)
+			if err == nil {
+				break
+			}
+			emailContext.Logger.Error("Unable to send email using sendgrid (will now retry attempt %d), error: %s", currentRetries, err.Error())
 		}
 	}()
 }
