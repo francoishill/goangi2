@@ -41,6 +41,24 @@ func getQuerySetterFromQueryFilter(qs orm.QuerySeter, queryFilter *QueryFilter) 
 	return qs.SetCond(finalCondition)
 }
 
+func getQuerySetterFromOtherInputs(qsIn orm.QuerySeter, limit, offset int64, orderByFields []string) orm.QuerySeter {
+	qsOut := qsIn
+
+	if limit > 0 && offset > 0 {
+		qsOut = qsOut.Limit(limit, offset)
+	} else if limit > 0 {
+		qsOut = qsOut.Limit(limit)
+	} else if offset > 0 {
+		qsOut = qsOut.Offset(offset)
+	}
+
+	if len(orderByFields) > 0 {
+		qsOut = qsOut.OrderBy(orderByFields...)
+	}
+
+	return qsOut
+}
+
 func (this *beegoOrmRepo) CheckEntityExistsWithPK(ormContext *OrmContext, entityObj interface{}) bool {
 	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
 	err := ormContextToUse.OrmWrapper.OrmInstance.Read(entityObj)
@@ -353,25 +371,15 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 
 	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
 	qs := ormContextToUse.OrmWrapper.OrmInstance.QueryTable(queryTableName)
-	if limit > 0 && offset > 0 {
-		qs = qs.Limit(limit, offset)
-	} else if limit > 0 {
-		qs = qs.Limit(limit)
-	} else if offset > 0 {
-		qs = qs.Offset(offset)
-	}
 
 	qs = getQuerySetterFromQueryFilter(qs, queryFilter)
+	qs = getQuerySetterFromOtherInputs(qs, limit, offset, orderByFields)
 
 	if relatedFieldsToLoad != nil {
 		fieldNames := relatedFieldsToLoad.GetFieldNames(true, false)
 		for _, relFieldName := range fieldNames {
 			qs = qs.RelatedSel(relFieldName)
 		}
-	}
-
-	if len(orderByFields) > 0 {
-		qs = qs.OrderBy(orderByFields...)
 	}
 
 	var sliceValToUse reflect.Value
@@ -408,6 +416,32 @@ func (this *beegoOrmRepo) BaseListEntities_ANDFilters_OrderBy_Limit_Offset(
 			}
 		}
 	}
+}
+
+func (this *beegoOrmRepo) BaseExtractSpecifiedColumnNames(
+	ormContext *OrmContext,
+	queryTableName string,
+	queryFilter *QueryFilter,
+	orderByFields []string,
+	limit int64,
+	offset int64,
+	columnNamesToExtract []string) []map[string]interface{} {
+
+	ormContextToUse := CreateOrmContext_FromAnother(ormContext, false)
+	qs := ormContextToUse.OrmWrapper.OrmInstance.QueryTable(queryTableName)
+
+	qs = getQuerySetterFromQueryFilter(qs, queryFilter)
+	qs = getQuerySetterFromOtherInputs(qs, limit, offset, orderByFields)
+
+	var tmpParams []orm.Params = nil
+	_, err := qs.Values(&tmpParams, columnNamesToExtract...)
+	checkError(err)
+
+	tmpExtractedColumnValues := []map[string]interface{}{}
+	for _, tmpParam := range tmpParams {
+		tmpExtractedColumnValues = append(tmpExtractedColumnValues, tmpParam)
+	}
+	return tmpExtractedColumnValues
 }
 
 func (this *beegoOrmRepo) BaseCountEntities_ANDFilters(ormContext *OrmContext, queryTableName string, queryFilter *QueryFilter) int64 {

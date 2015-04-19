@@ -69,6 +69,15 @@ type iOrmRepo interface {
 		relatedFieldsToLoad *RelatedFieldsToLoad,
 		sliceToPopulatePointer interface{})
 
+	BaseExtractSpecifiedColumnNames(
+		ormContext *OrmContext,
+		queryTableName string,
+		queryFilter *QueryFilter,
+		orderByFields []string,
+		limit int64,
+		offset int64,
+		columnNamesToExtract []string) []map[string]interface{}
+
 	BaseCountEntities_ANDFilters(
 		ormContext *OrmContext,
 		queryTableName string,
