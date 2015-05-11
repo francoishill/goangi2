@@ -12,9 +12,8 @@ func scrambleSaltString(normalSaltString string) string {
 	return normalSaltString[:12] + DefaultCookieSecurityContext.SecurityKey + normalSaltString[10:] //Yes some characters are repeated
 }
 
-func setEncryptedCookie(ctx *context.Context, key, value string) {
-	expireDays := 7
-	totalExpireSeconds := int64(86400 * expireDays)
+func setEncryptedCookie(ctx *context.Context, key, value string, cookieExpireDays int) {
+	totalExpireSeconds := int64(86400 * cookieExpireDays)
 
 	userAgent := ctx.Request.UserAgent()
 
@@ -28,8 +27,8 @@ func setEncryptedCookie(ctx *context.Context, key, value string) {
 	ctx.SetSecureCookie(secretValueScrambled, key, valueWithUserAgentPrepended, totalExpireSeconds)
 }
 
-func SetEncryptedAccessTokenInCookie(ctx *context.Context, accessToken string) {
-	setEncryptedCookie(ctx, cUSER_AGENT_AND_ACCESS_TOKEN_COOKIE_KEY_NAME, accessToken)
+func SetEncryptedAccessTokenInCookie(ctx *context.Context, accessToken string, cookieExpireDays int) {
+	setEncryptedCookie(ctx, cUSER_AGENT_AND_ACCESS_TOKEN_COOKIE_KEY_NAME, accessToken, cookieExpireDays)
 }
 
 func DeleteAccessTokenCookies(ctx *context.Context) {

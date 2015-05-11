@@ -207,7 +207,7 @@ func AuthorizeAndServeNewAccessTokenWithRouter(ctx *context.Context, cookieSecur
 				}
 			}
 
-			SetEncryptedAccessTokenInCookie(ctx, accessToken)
+			SetEncryptedAccessTokenInCookie(ctx, accessToken, cookieSecurityContext.CookieExpireDays)
 		}
 	}
 

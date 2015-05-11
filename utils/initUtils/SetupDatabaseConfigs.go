@@ -45,6 +45,7 @@ func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncFo
 
 func SetupDefaultSecurityContext(configProvider IConfigContainer) *CookieSecurityContext {
 	DefaultCookieSecurityContext = CreateCookieSecurityContext(
+		configProvider.MustInt("security::cookie_expire_days"),
 		configProvider.MustString("security::cookie_security_key"),
 		configProvider.MustString("security::web_oauth2_client_id"),
 		configProvider.MustString("security::web_oauth2_client_secret"),
