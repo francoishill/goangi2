@@ -37,6 +37,18 @@ func CreateOrmContext_FromAnother(ormContext *OrmContext, beginTransaction bool)
 	}
 }
 
+func CreateOrmContext_FromAnother_ButCreateNewOrmWrapper(ormContext *OrmContext, beginTransaction bool) *OrmContext {
+	if ormContext == nil {
+		returnContext := CreateDefaultOrmContext()
+		if beginTransaction {
+			returnContext.OrmWrapper.BeginTransaction()
+		}
+		return returnContext
+	} else {
+		return CreateOrmContext(ormContext.Logger, CreateNewOrmWrapper(nil), beginTransaction)
+	}
+}
+
 func CreateDefaultOrmContext() *OrmContext {
 	var ormWrapper *OrmWrapper = nil
 	beginTransaction := false
