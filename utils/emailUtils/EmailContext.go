@@ -109,6 +109,14 @@ func (this *EmailContext) GetDoNotReplyFrom() *EmailRecipient {
 	return this.doNotReplyFrom
 }
 
+func (this *EmailContext) GetAdminRecipient() *EmailRecipient {
+	return this.adminRecipient
+}
+
+func (this *EmailContext) GetSupportRecipient() *EmailRecipient {
+	return this.supportRecipient
+}
+
 func (this *EmailContext) GetQueueSendingInterval() time.Duration {
 	return time.Minute * time.Duration(this.queueSendingIntervalMinutes)
 }
