@@ -20,7 +20,7 @@ func checkError(err error) {
 	}
 }
 
-func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncForce, ormSyncIfFlagPresent bool) {
+func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncForce, ormSyncIfFlagPresent bool, defaultOrmRomLimit int) {
 	driverName := configProvider.MustString("database::driver_name")
 	dataSource := configProvider.MustString("database::data_source")
 	maxIdleConnections := configProvider.DefaultInt("database::max_idle_conn", 30)
@@ -41,6 +41,8 @@ func SetupDatabaseConfigs(configProvider IConfigContainer, ormSyncNow, ormSyncFo
 		// This will only run if the commandline arguments are "orm ..."
 		orm.RunCommand()
 	}
+
+	orm.DefaultRowsLimit = defaultOrmRomLimit
 }
 
 func SetupDefaultSecurityContext(configProvider IConfigContainer) *CookieSecurityContext {
